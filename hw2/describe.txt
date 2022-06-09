@@ -1,0 +1,5 @@
+對scanner的修改:
+
+在token後面加上return XXX
+加上#include "y.tab.h"
+註解main()

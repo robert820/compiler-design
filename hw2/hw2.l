@@ -27,6 +27,11 @@ boolean true|false
 %x COMMENT
 %x S_COMMENT
 %%
+"." {
+	token('.');
+	return('.');
+	}
+
 ","	{
 	token(',');
 	return(',');

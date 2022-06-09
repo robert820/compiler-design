@@ -351,8 +351,8 @@ static void yynoreturn yy_fatal_error ( const char* msg  );
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-#define YY_NUM_RULES 72
-#define YY_END_OF_BUFFER 73
+#define YY_NUM_RULES 73
+#define YY_END_OF_BUFFER 74
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -362,25 +362,25 @@ struct yy_trans_info
 	};
 static const flex_int16_t yy_accept[174] =
     {   0,
-       64,   64,    0,    0,    0,    0,   73,   71,   64,   63,
-       24,   71,   15,   22,    5,    6,   13,   11,    1,   12,
-       71,   14,   61,    2,    3,   16,   25,   19,   59,    7,
-        8,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-       59,   59,   59,   59,    9,   23,   10,   67,   72,   67,
-       70,   69,   64,   21,    0,   60,    0,   28,    0,   61,
-       26,   27,    4,   62,   65,   68,   29,   17,   20,   18,
-       59,   59,   59,   59,   59,   59,   59,   59,   39,   59,
-       59,   59,   59,   59,   59,   47,   58,   59,   59,   59,
-       59,   59,   59,   59,   59,   66,   62,   59,   59,   59,
+       65,   65,    0,    0,    0,    0,   74,   72,   65,   64,
+       25,   72,   16,   23,    6,    7,   14,   12,    2,   13,
+        1,   15,   62,    3,    4,   17,   26,   20,   60,    8,
+        9,   60,   60,   60,   60,   60,   60,   60,   60,   60,
+       60,   60,   60,   60,   10,   24,   11,   68,   73,   68,
+       71,   70,   65,   22,    0,   61,    0,   29,    0,   62,
+       27,   28,    5,   63,   66,   69,   30,   18,   21,   19,
+       60,   60,   60,   60,   60,   60,   60,   60,   40,   60,
+       60,   60,   60,   60,   60,   48,   59,   60,   60,   60,
+       60,   60,   60,   60,   60,   67,   63,   60,   60,   60,
 
-       59,   59,   59,   59,   59,   59,   59,   59,   46,   31,
-       48,   59,   59,   59,   59,   59,   59,   59,   54,   55,
-       59,    0,   62,   33,   59,   36,   35,   59,   59,   59,
-       40,   43,   59,   59,   49,   59,   57,   59,   59,   59,
-       53,   59,   34,   30,   59,   59,   44,   45,   32,   59,
-       59,   59,   56,   59,   59,   59,   51,   52,   59,   59,
-       38,   50,   59,   59,   37,   59,   59,   59,   59,   59,
-       41,   42,    0
+       60,   60,   60,   60,   60,   60,   60,   60,   47,   32,
+       49,   60,   60,   60,   60,   60,   60,   60,   55,   56,
+       60,    0,   63,   34,   60,   37,   36,   60,   60,   60,
+       41,   44,   60,   60,   50,   60,   58,   60,   60,   60,
+       54,   60,   35,   31,   60,   60,   45,   46,   33,   60,
+       60,   60,   57,   60,   60,   60,   52,   53,   60,   60,
+       39,   51,   60,   60,   38,   60,   60,   60,   60,   60,
+       42,   43,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -851,537 +851,545 @@ case 1:
 YY_RULE_SETUP
 #line 30 "hw2.l"
 {
-	token(',');
-	return(',');
+	token('.');
+	return('.');
 	}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 35 "hw2.l"
 {
-	token(':');
-	return(':');
+	token(',');
+	return(',');
 	}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 40 "hw2.l"
 {
-	token(';');
-	return(';');
+	token(':');
+	return(':');
 	}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 45 "hw2.l"
 {
-	token('->');
-	return(ARROW);
+	token(';');
+	return(';');
 	}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 50 "hw2.l"
 {
-	token('(');
-	return('(');
+	token('->');
+	return(ARROW);
 	}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 55 "hw2.l"
 {
-	token(')');
-	return(')');
+	token('(');
+	return('(');
 	}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 60 "hw2.l"
 {
-	token('[');
-	return('[');
+	token(')');
+	return(')');
 	}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 65 "hw2.l"
 {
-	token(']');
-	return(']');
+	token('[');
+	return('[');
 	}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 70 "hw2.l"
 {
-	token('{');
-	return('{');
+	token(']');
+	return(']');
 	}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 75 "hw2.l"
 {
-	token('}');
-	return('}');
+	token('{');
+	return('{');
 	}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 80 "hw2.l"
 {
-	token('+');
-	return('+');
+	token('}');
+	return('}');
 	}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 85 "hw2.l"
 {
-	token('-');
-	return('-');
+	token('+');
+	return('+');
 	}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 90 "hw2.l"
 {
-	token('*');
-	return('*');
+	token('-');
+	return('-');
 	}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 95 "hw2.l"
 {
-	token('/');
-	return('/');
+	token('*');
+	return('*');
 	}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 100 "hw2.l"
 {
-	token('%');
-	return('%');
+	token('/');
+	return('/');
 	}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 105 "hw2.l"
 {
-	token('<');
-	return('<');
+	token('%');
+	return('%');
 	}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 110 "hw2.l"
 {
-	token('<=');
-	return(LE);
+	token('<');
+	return('<');
 	}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 115 "hw2.l"
 {
-	token('>=');
-	return(GE);
+	token('<=');
+	return(LE);
 	}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 120 "hw2.l"
 {
-	token('>');
-	return('>');
+	token('>=');
+	return(GE);
 	}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 125 "hw2.l"
 {
-	token('==');
-	return(EQ);
+	token('>');
+	return('>');
 	}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 130 "hw2.l"
 {
-	token('!=');
-	return(NE);
+	token('==');
+	return(EQ);
 	}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 135 "hw2.l"
 {
-	token('&');
-	return('&');
+	token('!=');
+	return(NE);
 	}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 140 "hw2.l"
 {
-	token('|');
-	return('|');
+	token('&');
+	return('&');
 	}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 145 "hw2.l"
 {
-	token('!');
-	return('!');
+	token('|');
+	return('|');
 	}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 150 "hw2.l"
 {
-	token('=');
-	return('=');
+	token('!');
+	return('!');
 	}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 155 "hw2.l"
 {
-	token('+=');
-	return(AE);
+	token('=');
+	return('=');
 	}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 160 "hw2.l"
 {
-	token('-=');
-	return(SE);
+	token('+=');
+	return(AE);
 	}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 165 "hw2.l"
 {
-	token('*=');
-	return(ME);
+	token('-=');
+	return(SE);
 	}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 170 "hw2.l"
 {
-	token('/=');
-	return(DE);
+	token('*=');
+	return(ME);
 	}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 175 "hw2.l"
 {
-	token(CLASS);
-	return(CLASS);
+	token('/=');
+	return(DE);
 	}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 180 "hw2.l"
 {
-	token(FUN);
-	return(FUN);
+	token(CLASS);
+	return(CLASS);
 	}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 185 "hw2.l"
 {
-	token(PRINT);
-	return(PRINT);
+	token(FUN);
+	return(FUN);
 	}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 190 "hw2.l"
 {
-	token(BOOL);
-	return(BOOL);
+	token(PRINT);
+	return(PRINT);
 	}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 195 "hw2.l"
 {
-	token(BREAK);
-	return(BREAK);
+	token(BOOL);
+	return(BOOL);
 	}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 200 "hw2.l"
 {
-	token(CHAR);
-	return(CHAR);
+	token(BREAK);
+	return(BREAK);
 	}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 205 "hw2.l"
 {
-	token(CASE);
-	return(CASE);
+	token(CHAR);
+	return(CHAR);
 	}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 210 "hw2.l"
 {
-		token(CONTINUE);
-		return(CONTINUE);
-		}
+	token(CASE);
+	return(CASE);
+	}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
 #line 215 "hw2.l"
 {
-		token(DECLARE);
-		return(DECLARE);
+		token(CONTINUE);
+		return(CONTINUE);
 		}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
 #line 220 "hw2.l"
 {
-	token(DO);
-	return(DO);
-	}
+		token(DECLARE);
+		return(DECLARE);
+		}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
 #line 225 "hw2.l"
-
-	YY_BREAK
-
-case 41:
-YY_RULE_SETUP
-#line 227 "hw2.l"
-
-	YY_BREAK
-case 42:
-YY_RULE_SETUP
-#line 228 "hw2.l"
-
-	YY_BREAK
-
-case 43:
-YY_RULE_SETUP
-#line 231 "hw2.l"
 {
-	token(EXIT);
-	return(EXIT);
+	token(DO);
+	return(DO);
 	}
 	YY_BREAK
+case 41:
+YY_RULE_SETUP
+#line 230 "hw2.l"
+
+	YY_BREAK
+
+case 42:
+YY_RULE_SETUP
+#line 232 "hw2.l"
+
+	YY_BREAK
+case 43:
+YY_RULE_SETUP
+#line 233 "hw2.l"
+
+	YY_BREAK
+
 case 44:
 YY_RULE_SETUP
 #line 236 "hw2.l"
 {
-	token(FALSE);
-	return(FALSE);
+	token(EXIT);
+	return(EXIT);
 	}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 241 "hw2.l"
 {
-	token(FLOAT);
-	return(FLOAT);
+	token(FALSE);
+	return(FALSE);
 	}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 245 "hw2.l"
+#line 246 "hw2.l"
 {
-	token(FOR);
-	return(FOR);
+	token(FLOAT);
+	return(FLOAT);
 	}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 250 "hw2.l"
 {
-	token(IF);
-	return(IF);
+	token(FOR);
+	return(FOR);
 	}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
 #line 255 "hw2.l"
 {
-	token(INT);
-	return(INT);
+	token(IF);
+	return(IF);
 	}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
 #line 260 "hw2.l"
 {
-	token(LOOP);
-	return(LOOP);
+	token(INT);
+	return(INT);
 	}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
 #line 265 "hw2.l"
 {
-		token(PRINTLN);
-		return(PRINTLN);
-		}
+	token(LOOP);
+	return(LOOP);
+	}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
 #line 270 "hw2.l"
 {
-		token(RETURN);
-		return(RETURN);
+		token(PRINTLN);
+		return(PRINTLN);
 		}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
 #line 275 "hw2.l"
 {
-		token(STRING);
-		return(STRING);
+		token(RETURN);
+		return(RETURN);
 		}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
 #line 280 "hw2.l"
 {
-	token(TRUE);
-	return(TRUE);
-	}
+		token(STRING);
+		return(STRING);
+		}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
 #line 285 "hw2.l"
 {
-	token(VAL);
-	return(VAL);
+	token(TRUE);
+	return(TRUE);
 	}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
 #line 290 "hw2.l"
 {
-	token(VAR);
-	return(VAR);
+	token(VAL);
+	return(VAL);
 	}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
 #line 295 "hw2.l"
 {
-	token(WHILE);
-	return(WHILE);
+	token(VAR);
+	return(VAR);
 	}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
 #line 300 "hw2.l"
 {
-	token(READ);
-	return(READ);
+	token(WHILE);
+	return(WHILE);
 	}
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
 #line 305 "hw2.l"
 {
-	token(IN);
-	return(IN);
+	token(READ);
+	return(READ);
 	}
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
 #line 310 "hw2.l"
 {
+	token(IN);
+	return(IN);
+	}
+	YY_BREAK
+case 60:
+YY_RULE_SETUP
+#line 315 "hw2.l"
+{
 		tokenString(id, yytext);
 		insert(symbolTable, yytext);
 		}
 	YY_BREAK
-case 60:
-/* rule 60 can match eol */
+case 61:
+/* rule 61 can match eol */
 YY_RULE_SETUP
-#line 315 "hw2.l"
+#line 320 "hw2.l"
 {
 		tokenString(string, yytext);
 		}
 	YY_BREAK
-case 61:
+case 62:
 YY_RULE_SETUP
-#line 319 "hw2.l"
+#line 324 "hw2.l"
 {
 		tokenInteger(integer, yytext);
 		}
 	YY_BREAK
-case 62:
+case 63:
 YY_RULE_SETUP
-#line 323 "hw2.l"
+#line 328 "hw2.l"
 {
 		tokenReal(real, yytext);
 		}
 	YY_BREAK
-case 63:
-/* rule 63 can match eol */
+case 64:
+/* rule 64 can match eol */
 YY_RULE_SETUP
-#line 327 "hw2.l"
+#line 332 "hw2.l"
 {
         LIST;
         printf("%d: %s", linenum++, buf);
         buf[0] = '\0';
         }
 	YY_BREAK
-case 64:
-YY_RULE_SETUP
-#line 333 "hw2.l"
-{ LIST; }
-	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 335 "hw2.l"
+#line 338 "hw2.l"
+{ LIST; }
+	YY_BREAK
+case 66:
+YY_RULE_SETUP
+#line 340 "hw2.l"
 {
 	LIST;
 	BEGIN(COMMENT);
 	}
 	YY_BREAK
-case 66:
+case 67:
 YY_RULE_SETUP
-#line 339 "hw2.l"
+#line 344 "hw2.l"
 {
 		LIST;
 		BEGIN(INITIAL);
 		}
 	YY_BREAK
-case 67:
-YY_RULE_SETUP
-#line 343 "hw2.l"
-{ LIST; }
-	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 345 "hw2.l"
+#line 348 "hw2.l"
+{ LIST; }
+	YY_BREAK
+case 69:
+YY_RULE_SETUP
+#line 350 "hw2.l"
 {
 	LIST;
 	BEGIN(S_COMMENT);
 	}
 	YY_BREAK
-case 69:
-/* rule 69 can match eol */
+case 70:
+/* rule 70 can match eol */
 YY_RULE_SETUP
-#line 349 "hw2.l"
+#line 354 "hw2.l"
 {
 		LIST;
 		printf("%d:%s", linenum++, buf);
@@ -1389,14 +1397,14 @@ YY_RULE_SETUP
 		BEGIN(INITIAL);
 		}
 	YY_BREAK
-case 70:
-YY_RULE_SETUP
-#line 355 "hw2.l"
-{ LIST; }
-	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 361 "hw2.l"
+#line 360 "hw2.l"
+{ LIST; }
+	YY_BREAK
+case 72:
+YY_RULE_SETUP
+#line 366 "hw2.l"
 {
         LIST;
         printf("%d:%s\n", linenum+1, buf);
@@ -1404,12 +1412,12 @@ YY_RULE_SETUP
         exit(-1);
         }
 	YY_BREAK
-case 72:
+case 73:
 YY_RULE_SETUP
-#line 367 "hw2.l"
+#line 372 "hw2.l"
 ECHO;
 	YY_BREAK
-#line 1412 "lex.yy.c"
+#line 1420 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(S_COMMENT):
@@ -2416,7 +2424,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 367 "hw2.l"
+#line 372 "hw2.l"
 
 /*
 int main() {

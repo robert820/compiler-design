@@ -46,12 +46,19 @@ void yyerror(char *s);
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
+//%nonassoc ONE
+//%nonassoc TWO
+//%nonassoc THREE
+
+%nonassoc FOUR
+%nonassoc FIVE
+
 %token BOOL BREAK CHAR CASE CLASS CONTINUE DECLARE DO IF ELSE EXIT FLOAT FOR FUN INT LOOP PRINT PRINTLN RETURN STRING  VAL VAR WHILE READ IN
 
 %token <bvalue> TRUE
 %token <bvalue> FALSE
 
-%type <ivalue> integer_expression
+//%type <ivalue> integer_expression
 %type <bvalue> bool_expresssion
 %type <bvalue> boolean
 %token <str> string id
@@ -119,16 +126,19 @@ statement: declaration
         | condition
         | loop
         | id '=' expression
-        | RETURN 
-        | RETURN expression
+        | return
         | PRINT '(' expression ')'
+        | PRINT expression
         | PRINTLN '(' expression ')'
+        | PRINTLN expression
         | READ id
         ;
 
+return: RETURN expression;
+
 expression: integer_expression
             | '(' expression ')'
-            | id '(' expression ')'
+            | id '(' expression_list ')'
             | bool_expresssion
             | comparison
             | id
@@ -138,15 +148,20 @@ expression: integer_expression
             | real
             ;
 
+expression_list: 
+                |expression
+		|expression_list ',' expression
+                ;
+
 boolean: TRUE
         |FALSE
         ;
 
-integer_expression: integer '+' integer   {$$ = $1 + $3;}
-                    | '-' integer   %prec UMINUS        {$$ = -$2;}
-                    | integer '-' integer {$$ = $1 - $3;}
-                    | integer '*' integer {$$ = $1 * $3;}
-                    | integer '/' integer {$$ = $1 / $3;}
+integer_expression: expression '+' expression
+                    | '-' expression   %prec UMINUS
+                    | expression '-' expression
+                    | expression '*' expression
+                    | expression '/' expression
                     ;
 
 bool_expresssion:  '!' boolean              {$$ = !$2;}
@@ -164,8 +179,8 @@ condition: IF '(' expression ')' '{' statements '}' %prec LOWER_THAN_ELSE
 
 loop: WHILE '(' expression ')' '{' statements '}'
     | WHILE '(' expression ')' statement
-    | FOR '(' id IN integer '.' '.' integer ')' '{' statements '}'
-    | FOR '(' id IN integer '.' '.' integer ')' statement
+    | FOR '(' id IN expression '.' '.' expression ')' '{' statements '}'
+    | FOR '(' id IN expression '.' '.' expression ')' statement
     ;
 
 comparison: expression '<' expression

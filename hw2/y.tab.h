@@ -65,37 +65,39 @@ extern int yydebug;
     ARROW = 266,                   /* ARROW  */
     UMINUS = 267,                  /* UMINUS  */
     LOWER_THAN_ELSE = 268,         /* LOWER_THAN_ELSE  */
-    BOOL = 269,                    /* BOOL  */
-    BREAK = 270,                   /* BREAK  */
-    CHAR = 271,                    /* CHAR  */
-    CASE = 272,                    /* CASE  */
-    CLASS = 273,                   /* CLASS  */
-    CONTINUE = 274,                /* CONTINUE  */
-    DECLARE = 275,                 /* DECLARE  */
-    DO = 276,                      /* DO  */
-    IF = 277,                      /* IF  */
-    ELSE = 278,                    /* ELSE  */
-    EXIT = 279,                    /* EXIT  */
-    FLOAT = 280,                   /* FLOAT  */
-    FOR = 281,                     /* FOR  */
-    FUN = 282,                     /* FUN  */
-    INT = 283,                     /* INT  */
-    LOOP = 284,                    /* LOOP  */
-    PRINT = 285,                   /* PRINT  */
-    PRINTLN = 286,                 /* PRINTLN  */
-    RETURN = 287,                  /* RETURN  */
-    STRING = 288,                  /* STRING  */
-    VAL = 289,                     /* VAL  */
-    VAR = 290,                     /* VAR  */
-    WHILE = 291,                   /* WHILE  */
-    READ = 292,                    /* READ  */
-    IN = 293,                      /* IN  */
-    TRUE = 294,                    /* TRUE  */
-    FALSE = 295,                   /* FALSE  */
-    string = 296,                  /* string  */
-    id = 297,                      /* id  */
-    integer = 298,                 /* integer  */
-    real = 299                     /* real  */
+    FOUR = 269,                    /* FOUR  */
+    FIVE = 270,                    /* FIVE  */
+    BOOL = 271,                    /* BOOL  */
+    BREAK = 272,                   /* BREAK  */
+    CHAR = 273,                    /* CHAR  */
+    CASE = 274,                    /* CASE  */
+    CLASS = 275,                   /* CLASS  */
+    CONTINUE = 276,                /* CONTINUE  */
+    DECLARE = 277,                 /* DECLARE  */
+    DO = 278,                      /* DO  */
+    IF = 279,                      /* IF  */
+    ELSE = 280,                    /* ELSE  */
+    EXIT = 281,                    /* EXIT  */
+    FLOAT = 282,                   /* FLOAT  */
+    FOR = 283,                     /* FOR  */
+    FUN = 284,                     /* FUN  */
+    INT = 285,                     /* INT  */
+    LOOP = 286,                    /* LOOP  */
+    PRINT = 287,                   /* PRINT  */
+    PRINTLN = 288,                 /* PRINTLN  */
+    RETURN = 289,                  /* RETURN  */
+    STRING = 290,                  /* STRING  */
+    VAL = 291,                     /* VAL  */
+    VAR = 292,                     /* VAR  */
+    WHILE = 293,                   /* WHILE  */
+    READ = 294,                    /* READ  */
+    IN = 295,                      /* IN  */
+    TRUE = 296,                    /* TRUE  */
+    FALSE = 297,                   /* FALSE  */
+    string = 298,                  /* string  */
+    id = 299,                      /* id  */
+    integer = 300,                 /* integer  */
+    real = 301                     /* real  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -115,37 +117,39 @@ extern int yydebug;
 #define ARROW 266
 #define UMINUS 267
 #define LOWER_THAN_ELSE 268
-#define BOOL 269
-#define BREAK 270
-#define CHAR 271
-#define CASE 272
-#define CLASS 273
-#define CONTINUE 274
-#define DECLARE 275
-#define DO 276
-#define IF 277
-#define ELSE 278
-#define EXIT 279
-#define FLOAT 280
-#define FOR 281
-#define FUN 282
-#define INT 283
-#define LOOP 284
-#define PRINT 285
-#define PRINTLN 286
-#define RETURN 287
-#define STRING 288
-#define VAL 289
-#define VAR 290
-#define WHILE 291
-#define READ 292
-#define IN 293
-#define TRUE 294
-#define FALSE 295
-#define string 296
-#define id 297
-#define integer 298
-#define real 299
+#define FOUR 269
+#define FIVE 270
+#define BOOL 271
+#define BREAK 272
+#define CHAR 273
+#define CASE 274
+#define CLASS 275
+#define CONTINUE 276
+#define DECLARE 277
+#define DO 278
+#define IF 279
+#define ELSE 280
+#define EXIT 281
+#define FLOAT 282
+#define FOR 283
+#define FUN 284
+#define INT 285
+#define LOOP 286
+#define PRINT 287
+#define PRINTLN 288
+#define RETURN 289
+#define STRING 290
+#define VAL 291
+#define VAR 292
+#define WHILE 293
+#define READ 294
+#define IN 295
+#define TRUE 296
+#define FALSE 297
+#define string 298
+#define id 299
+#define integer 300
+#define real 301
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -159,7 +163,7 @@ union YYSTYPE
     float                    fvalue;
     _Bool                    bvalue;
 
-#line 163 "y.tab.h"
+#line 167 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
