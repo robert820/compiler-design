@@ -227,8 +227,7 @@ boolean true|false
 	return(DO);
 	}
 
-"else"
-	{
+"else"	{
 	token(ELSE);
 	return(ELSE);
 	}

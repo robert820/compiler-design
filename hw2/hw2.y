@@ -50,16 +50,16 @@ void yyerror(char *s);
 //%nonassoc TWO
 //%nonassoc THREE
 
-%nonassoc FOUR
-%nonassoc FIVE
+//%nonassoc FOUR
+//%nonassoc FIVE
 
-%token BOOL BREAK CHAR CASE CLASS CONTINUE DECLARE DO IF ELSE EXIT FLOAT FOR FUN INT LOOP PRINT PRINTLN RETURN STRING  VAL VAR WHILE READ IN
+%token BOOL BREAK CHAR CASE CLASS CONTINUE DECLARE DO IF EXIT FLOAT FOR FUN INT LOOP PRINT PRINTLN RETURN STRING  VAL VAR WHILE READ IN
 
 %token <bvalue> TRUE
 %token <bvalue> FALSE
 
 //%type <ivalue> integer_expression
-%type <bvalue> bool_expresssion
+//%type <bvalue> bool_expresssion
 %type <bvalue> boolean
 %token <str> string id
 %token <ivalue> integer
@@ -95,7 +95,7 @@ functions:      function functions
                 |
                 ;
 
-function:       FUN id '(' arguments ')' returnValue '{' statements '}'
+function:       FUN id '(' arguments ')' returnType '{' statements '}'
                 ;
 
 arguments: argument arguments
@@ -108,7 +108,7 @@ seperator: ','
             |/*empty*/
             ;
 
-returnValue:/*empty*/
+returnType:/*empty*/
             | ':' type
             ;
 
@@ -134,7 +134,12 @@ statement: declaration
         | READ id
         ;
 
-return: RETURN expression;
+return: RETURN returnValue
+        ;
+
+returnValue: expression
+        |
+        ;
 
 expression: integer_expression
             | '(' expression ')'
@@ -164,9 +169,9 @@ integer_expression: expression '+' expression
                     | expression '/' expression
                     ;
 
-bool_expresssion:  '!' boolean              {$$ = !$2;}
-                | boolean '&' boolean
-                | boolean '|' boolean
+bool_expresssion:  '!' expression              //{$$ = !$2;}
+                | expression '&' expression
+                | expression '|' expression
                 ;
 
 condition: IF '(' expression ')' '{' statements '}' %prec LOWER_THAN_ELSE
