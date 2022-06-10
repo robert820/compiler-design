@@ -15,6 +15,8 @@ void yyerror(char *s);
     char*                    str;
     float                    fvalue;
     _Bool                    bvalue;
+    identifier_type*           identifier;
+    value_type identifier_value_type;
 }
 
 %start program
@@ -116,7 +118,7 @@ statements:/*empty*/
     | statement statements
     ;
 
-type:   STRING
+type:   STRING {$$ = bool_v;}
         | INT
         | BOOL
         | FLOAT
