@@ -1,0 +1,2432 @@
+Terminals unused in grammar
+
+    DE
+    ME
+    SE
+    AE
+    ARROW
+    FOUR
+    FIVE
+    BREAK
+    CHAR
+    CASE
+    CONTINUE
+    DECLARE
+    DO
+    EXIT
+    LOOP
+
+
+State 116 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: declaration function functions declarations
+    2        | declarations class classes declarations
+
+    3 classes: class classes
+    4        | ε
+
+    5 class: CLASS id '{' declarations_and_functions '}'
+
+    6 declaration_and_function: declaration
+    7                         | function
+
+    8 declarations_and_functions: declaration_and_function declarations_and_functions
+    9                           | ε
+
+   10 functions: function functions
+   11          | ε
+
+   12 function: FUN id '(' arguments ')' returnValue '{' statements '}'
+
+   13 arguments: argument arguments
+   14          | ε
+
+   15 argument: id ':' type seperator
+
+   16 seperator: ','
+   17          | ε
+
+   18 returnValue: ε
+   19            | ':' type
+
+   20 statements: ε
+   21           | statement statements
+
+   22 type: STRING
+   23     | INT
+   24     | BOOL
+   25     | FLOAT
+
+   26 statement: declaration
+   27          | condition
+   28          | loop
+   29          | id '=' expression
+   30          | return
+   31          | PRINT '(' expression ')'
+   32          | PRINTLN '(' expression ')'
+   33          | READ id
+
+   34 return: RETURN expressions
+
+   35 expressions: expression
+   36            | ε
+
+   37 expression: integer_expression
+   38           | '(' expression ')'
+   39           | id '(' expression ')'
+   40           | bool_expresssion
+   41           | comparison
+   42           | id
+   43           | integer
+   44           | string
+   45           | boolean
+   46           | real
+
+   47 boolean: TRUE
+   48        | FALSE
+
+   49 integer_expression: integer '+' integer
+   50                   | '-' integer
+   51                   | integer '-' integer
+   52                   | integer '*' integer
+   53                   | integer '/' integer
+
+   54 bool_expresssion: '!' boolean
+   55                 | boolean '&' boolean
+   56                 | boolean '|' boolean
+
+   57 condition: IF '(' expression ')' '{' statements '}'
+   58          | IF '(' expression ')' statement
+   59          | IF '(' expression ')' '{' statements '}' ELSE '{' statements '}'
+   60          | IF '(' expression ')' statement ELSE statement
+   61          | IF '(' expression ')' statement ELSE '{' statements '}'
+   62          | IF '(' expression ')' '{' statements '}' ELSE statement
+
+   63 loop: WHILE '(' expression ')' '{' statements '}'
+   64     | WHILE '(' expression ')' statement
+   65     | FOR '(' id IN integer '.' '.' integer ')' '{' statements '}'
+   66     | FOR '(' id IN integer '.' '.' integer ')' statement
+
+   67 comparison: expression '<' expression
+   68           | expression LE expression
+   69           | expression EQ expression
+   70           | expression '>' expression
+   71           | expression GE expression
+   72           | expression NE expression
+
+   73 declarations: declaration declarations
+   74             | ε
+
+   75 declaration: constant_declaration
+   76            | variable_declaration
+   77            | arrays_declaration
+
+   78 constant_declaration: VAL id '=' expression
+   79                     | VAL id ':' type '=' expression
+
+   80 variable_declaration: VAR id
+   81                     | VAR id ':' type
+   82                     | VAR id '=' expression
+   83                     | VAR id ':' type '=' expression
+
+   84 arrays_declaration: VAR id ':' type '[' integer ']'
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '!' (33) 54
+    '&' (38) 55
+    '(' (40) 12 31 32 38 39 57 58 59 60 61 62 63 64 65 66
+    ')' (41) 12 31 32 38 39 57 58 59 60 61 62 63 64 65 66
+    '*' (42) 52
+    '+' (43) 49
+    ',' (44) 16
+    '-' (45) 50 51
+    '.' (46) 65 66
+    '/' (47) 53
+    ':' (58) 15 19 79 81 83 84
+    '<' (60) 67
+    '=' (61) 29 78 79 82 83
+    '>' (62) 70
+    '[' (91) 84
+    ']' (93) 84
+    '{' (123) 5 12 57 59 61 62 63 65
+    '|' (124) 56
+    '}' (125) 5 12 57 59 61 62 63 65
+    error (256)
+    DE (258)
+    ME (259)
+    SE (260)
+    AE (261)
+    NE (262) 72
+    EQ (263) 69
+    GE (264) 71
+    LE (265) 68
+    ARROW (266)
+    UMINUS (267)
+    LOWER_THAN_ELSE (268)
+    FOUR (269)
+    FIVE (270)
+    BOOL (271) 24
+    BREAK (272)
+    CHAR (273)
+    CASE (274)
+    CLASS (275) 5
+    CONTINUE (276)
+    DECLARE (277)
+    DO (278)
+    IF (279) 57 58 59 60 61 62
+    ELSE (280) 59 60 61 62
+    EXIT (281)
+    FLOAT (282) 25
+    FOR (283) 65 66
+    FUN (284) 12
+    INT (285) 23
+    LOOP (286)
+    PRINT (287) 31
+    PRINTLN (288) 32
+    RETURN (289) 34
+    STRING (290) 22
+    VAL (291) 78 79
+    VAR (292) 80 81 82 83 84
+    WHILE (293) 63 64
+    READ (294) 33
+    IN (295) 65 66
+    TRUE <bvalue> (296) 47
+    FALSE <bvalue> (297) 48
+    string <str> (298) 44
+    id <str> (299) 5 12 15 29 33 39 42 65 66 78 79 80 81 82 83 84
+    integer <ivalue> (300) 43 49 50 51 52 53 65 66 84
+    real <fvalue> (301) 46
+
+
+Nonterminals, with rules where they appear
+
+    $accept (66)
+        on left: 0
+    program (67)
+        on left: 1 2
+        on right: 0
+    classes (68)
+        on left: 3 4
+        on right: 2 3
+    class (69)
+        on left: 5
+        on right: 2 3
+    declaration_and_function (70)
+        on left: 6 7
+        on right: 8
+    declarations_and_functions (71)
+        on left: 8 9
+        on right: 5 8
+    functions (72)
+        on left: 10 11
+        on right: 1 10
+    function (73)
+        on left: 12
+        on right: 1 7 10
+    arguments (74)
+        on left: 13 14
+        on right: 12 13
+    argument (75)
+        on left: 15
+        on right: 13
+    seperator (76)
+        on left: 16 17
+        on right: 15
+    returnValue (77)
+        on left: 18 19
+        on right: 12
+    statements (78)
+        on left: 20 21
+        on right: 12 21 57 59 61 62 63 65
+    type (79)
+        on left: 22 23 24 25
+        on right: 15 19 79 81 83 84
+    statement (80)
+        on left: 26 27 28 29 30 31 32 33
+        on right: 21 58 60 61 62 64 66
+    return (81)
+        on left: 34
+        on right: 30
+    expressions (82)
+        on left: 35 36
+        on right: 34
+    expression (83)
+        on left: 37 38 39 40 41 42 43 44 45 46
+        on right: 29 31 32 35 38 39 57 58 59 60 61 62 63 64 67 68 69 70 71 72 78 79 82 83
+    boolean <bvalue> (84)
+        on left: 47 48
+        on right: 45 54 55 56
+    integer_expression <ivalue> (85)
+        on left: 49 50 51 52 53
+        on right: 37
+    bool_expresssion <bvalue> (86)
+        on left: 54 55 56
+        on right: 40
+    condition (87)
+        on left: 57 58 59 60 61 62
+        on right: 27
+    loop (88)
+        on left: 63 64 65 66
+        on right: 28
+    comparison (89)
+        on left: 67 68 69 70 71 72
+        on right: 41
+    declarations (90)
+        on left: 73 74
+        on right: 1 2 73
+    declaration (91)
+        on left: 75 76 77
+        on right: 1 6 26 73
+    constant_declaration (92)
+        on left: 78 79
+        on right: 75
+    variable_declaration (93)
+        on left: 80 81 82 83
+        on right: 76
+    arrays_declaration (94)
+        on left: 84
+        on right: 77
+
+
+State 0
+
+    0 $accept: • program $end
+
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 74 (declarations)
+
+    program               go to state 3
+    declarations          go to state 4
+    declaration           go to state 5
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 1
+
+   78 constant_declaration: VAL • id '=' expression
+   79                     | VAL • id ':' type '=' expression
+
+    id  shift, and go to state 9
+
+
+State 2
+
+   80 variable_declaration: VAR • id
+   81                     | VAR • id ':' type
+   82                     | VAR • id '=' expression
+   83                     | VAR • id ':' type '=' expression
+   84 arrays_declaration: VAR • id ':' type '[' integer ']'
+
+    id  shift, and go to state 10
+
+
+State 3
+
+    0 $accept: program • $end
+
+    $end  shift, and go to state 11
+
+
+State 4
+
+    2 program: declarations • class classes declarations
+
+    CLASS  shift, and go to state 12
+
+    class  go to state 13
+
+
+State 5
+
+    1 program: declaration • function functions declarations
+   73 declarations: declaration • declarations
+
+    FUN  shift, and go to state 14
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 74 (declarations)
+
+    function              go to state 15
+    declarations          go to state 16
+    declaration           go to state 17
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 6
+
+   75 declaration: constant_declaration •
+
+    $default  reduce using rule 75 (declaration)
+
+
+State 7
+
+   76 declaration: variable_declaration •
+
+    $default  reduce using rule 76 (declaration)
+
+
+State 8
+
+   77 declaration: arrays_declaration •
+
+    $default  reduce using rule 77 (declaration)
+
+
+State 9
+
+   78 constant_declaration: VAL id • '=' expression
+   79                     | VAL id • ':' type '=' expression
+
+    ':'  shift, and go to state 18
+    '='  shift, and go to state 19
+
+
+State 10
+
+   80 variable_declaration: VAR id •
+   81                     | VAR id • ':' type
+   82                     | VAR id • '=' expression
+   83                     | VAR id • ':' type '=' expression
+   84 arrays_declaration: VAR id • ':' type '[' integer ']'
+
+    ':'  shift, and go to state 20
+    '='  shift, and go to state 21
+
+    $default  reduce using rule 80 (variable_declaration)
+
+
+State 11
+
+    0 $accept: program $end •
+
+    $default  accept
+
+
+State 12
+
+    5 class: CLASS • id '{' declarations_and_functions '}'
+
+    id  shift, and go to state 22
+
+
+State 13
+
+    2 program: declarations class • classes declarations
+
+    CLASS  shift, and go to state 12
+
+    $default  reduce using rule 4 (classes)
+
+    classes  go to state 23
+    class    go to state 24
+
+
+State 14
+
+   12 function: FUN • id '(' arguments ')' returnValue '{' statements '}'
+
+    id  shift, and go to state 25
+
+
+State 15
+
+    1 program: declaration function • functions declarations
+
+    FUN  shift, and go to state 14
+
+    $default  reduce using rule 11 (functions)
+
+    functions  go to state 26
+    function   go to state 27
+
+
+State 16
+
+   73 declarations: declaration declarations •
+
+    $default  reduce using rule 73 (declarations)
+
+
+State 17
+
+   73 declarations: declaration • declarations
+
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 74 (declarations)
+
+    declarations          go to state 16
+    declaration           go to state 17
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 18
+
+   79 constant_declaration: VAL id ':' • type '=' expression
+
+    BOOL    shift, and go to state 28
+    FLOAT   shift, and go to state 29
+    INT     shift, and go to state 30
+    STRING  shift, and go to state 31
+
+    type  go to state 32
+
+
+State 19
+
+   78 constant_declaration: VAL id '=' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 42
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 20
+
+   81 variable_declaration: VAR id ':' • type
+   83                     | VAR id ':' • type '=' expression
+   84 arrays_declaration: VAR id ':' • type '[' integer ']'
+
+    BOOL    shift, and go to state 28
+    FLOAT   shift, and go to state 29
+    INT     shift, and go to state 30
+    STRING  shift, and go to state 31
+
+    type  go to state 47
+
+
+State 21
+
+   82 variable_declaration: VAR id '=' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 48
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 22
+
+    5 class: CLASS id • '{' declarations_and_functions '}'
+
+    '{'  shift, and go to state 49
+
+
+State 23
+
+    2 program: declarations class classes • declarations
+
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 74 (declarations)
+
+    declarations          go to state 50
+    declaration           go to state 17
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 24
+
+    3 classes: class • classes
+
+    CLASS  shift, and go to state 12
+
+    $default  reduce using rule 4 (classes)
+
+    classes  go to state 51
+    class    go to state 24
+
+
+State 25
+
+   12 function: FUN id • '(' arguments ')' returnValue '{' statements '}'
+
+    '('  shift, and go to state 52
+
+
+State 26
+
+    1 program: declaration function functions • declarations
+
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 74 (declarations)
+
+    declarations          go to state 53
+    declaration           go to state 17
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 27
+
+   10 functions: function • functions
+
+    FUN  shift, and go to state 14
+
+    $default  reduce using rule 11 (functions)
+
+    functions  go to state 54
+    function   go to state 27
+
+
+State 28
+
+   24 type: BOOL •
+
+    $default  reduce using rule 24 (type)
+
+
+State 29
+
+   25 type: FLOAT •
+
+    $default  reduce using rule 25 (type)
+
+
+State 30
+
+   23 type: INT •
+
+    $default  reduce using rule 23 (type)
+
+
+State 31
+
+   22 type: STRING •
+
+    $default  reduce using rule 22 (type)
+
+
+State 32
+
+   79 constant_declaration: VAL id ':' type • '=' expression
+
+    '='  shift, and go to state 55
+
+
+State 33
+
+   50 integer_expression: '-' • integer
+
+    integer  shift, and go to state 56
+
+
+State 34
+
+   47 boolean: TRUE •
+
+    $default  reduce using rule 47 (boolean)
+
+
+State 35
+
+   48 boolean: FALSE •
+
+    $default  reduce using rule 48 (boolean)
+
+
+State 36
+
+   44 expression: string •
+
+    $default  reduce using rule 44 (expression)
+
+
+State 37
+
+   39 expression: id • '(' expression ')'
+   42           | id •
+
+    '('  shift, and go to state 57
+
+    $default  reduce using rule 42 (expression)
+
+
+State 38
+
+   43 expression: integer •
+   49 integer_expression: integer • '+' integer
+   51                   | integer • '-' integer
+   52                   | integer • '*' integer
+   53                   | integer • '/' integer
+
+    '+'  shift, and go to state 58
+    '-'  shift, and go to state 59
+    '*'  shift, and go to state 60
+    '/'  shift, and go to state 61
+
+    $default  reduce using rule 43 (expression)
+
+
+State 39
+
+   46 expression: real •
+
+    $default  reduce using rule 46 (expression)
+
+
+State 40
+
+   38 expression: '(' • expression ')'
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 62
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 41
+
+   54 bool_expresssion: '!' • boolean
+
+    TRUE   shift, and go to state 34
+    FALSE  shift, and go to state 35
+
+    boolean  go to state 63
+
+
+State 42
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+   78 constant_declaration: VAL id '=' expression •
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 78 (constant_declaration)
+
+
+State 43
+
+   45 expression: boolean •
+   55 bool_expresssion: boolean • '&' boolean
+   56                 | boolean • '|' boolean
+
+    '&'  shift, and go to state 70
+    '|'  shift, and go to state 71
+
+    $default  reduce using rule 45 (expression)
+
+
+State 44
+
+   37 expression: integer_expression •
+
+    $default  reduce using rule 37 (expression)
+
+
+State 45
+
+   40 expression: bool_expresssion •
+
+    $default  reduce using rule 40 (expression)
+
+
+State 46
+
+   41 expression: comparison •
+
+    $default  reduce using rule 41 (expression)
+
+
+State 47
+
+   81 variable_declaration: VAR id ':' type •
+   83                     | VAR id ':' type • '=' expression
+   84 arrays_declaration: VAR id ':' type • '[' integer ']'
+
+    '='  shift, and go to state 72
+    '['  shift, and go to state 73
+
+    $default  reduce using rule 81 (variable_declaration)
+
+
+State 48
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+   82 variable_declaration: VAR id '=' expression •
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 82 (variable_declaration)
+
+
+State 49
+
+    5 class: CLASS id '{' • declarations_and_functions '}'
+
+    FUN  shift, and go to state 14
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 9 (declarations_and_functions)
+
+    declaration_and_function    go to state 74
+    declarations_and_functions  go to state 75
+    function                    go to state 76
+    declaration                 go to state 77
+    constant_declaration        go to state 6
+    variable_declaration        go to state 7
+    arrays_declaration          go to state 8
+
+
+State 50
+
+    2 program: declarations class classes declarations •
+
+    $default  reduce using rule 2 (program)
+
+
+State 51
+
+    3 classes: class classes •
+
+    $default  reduce using rule 3 (classes)
+
+
+State 52
+
+   12 function: FUN id '(' • arguments ')' returnValue '{' statements '}'
+
+    id  shift, and go to state 78
+
+    $default  reduce using rule 14 (arguments)
+
+    arguments  go to state 79
+    argument   go to state 80
+
+
+State 53
+
+    1 program: declaration function functions declarations •
+
+    $default  reduce using rule 1 (program)
+
+
+State 54
+
+   10 functions: function functions •
+
+    $default  reduce using rule 10 (functions)
+
+
+State 55
+
+   79 constant_declaration: VAL id ':' type '=' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 81
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 56
+
+   50 integer_expression: '-' integer •
+
+    $default  reduce using rule 50 (integer_expression)
+
+
+State 57
+
+   39 expression: id '(' • expression ')'
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 82
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 58
+
+   49 integer_expression: integer '+' • integer
+
+    integer  shift, and go to state 83
+
+
+State 59
+
+   51 integer_expression: integer '-' • integer
+
+    integer  shift, and go to state 84
+
+
+State 60
+
+   52 integer_expression: integer '*' • integer
+
+    integer  shift, and go to state 85
+
+
+State 61
+
+   53 integer_expression: integer '/' • integer
+
+    integer  shift, and go to state 86
+
+
+State 62
+
+   38 expression: '(' expression • ')'
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 87
+
+
+State 63
+
+   54 bool_expresssion: '!' boolean •
+
+    $default  reduce using rule 54 (bool_expresssion)
+
+
+State 64
+
+   72 comparison: expression NE • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 88
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 65
+
+   69 comparison: expression EQ • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 89
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 66
+
+   71 comparison: expression GE • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 90
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 67
+
+   68 comparison: expression LE • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 91
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 68
+
+   70 comparison: expression '>' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 92
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 69
+
+   67 comparison: expression '<' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 93
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 70
+
+   55 bool_expresssion: boolean '&' • boolean
+
+    TRUE   shift, and go to state 34
+    FALSE  shift, and go to state 35
+
+    boolean  go to state 94
+
+
+State 71
+
+   56 bool_expresssion: boolean '|' • boolean
+
+    TRUE   shift, and go to state 34
+    FALSE  shift, and go to state 35
+
+    boolean  go to state 95
+
+
+State 72
+
+   83 variable_declaration: VAR id ':' type '=' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 96
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 73
+
+   84 arrays_declaration: VAR id ':' type '[' • integer ']'
+
+    integer  shift, and go to state 97
+
+
+State 74
+
+    8 declarations_and_functions: declaration_and_function • declarations_and_functions
+
+    FUN  shift, and go to state 14
+    VAL  shift, and go to state 1
+    VAR  shift, and go to state 2
+
+    $default  reduce using rule 9 (declarations_and_functions)
+
+    declaration_and_function    go to state 74
+    declarations_and_functions  go to state 98
+    function                    go to state 76
+    declaration                 go to state 77
+    constant_declaration        go to state 6
+    variable_declaration        go to state 7
+    arrays_declaration          go to state 8
+
+
+State 75
+
+    5 class: CLASS id '{' declarations_and_functions • '}'
+
+    '}'  shift, and go to state 99
+
+
+State 76
+
+    7 declaration_and_function: function •
+
+    $default  reduce using rule 7 (declaration_and_function)
+
+
+State 77
+
+    6 declaration_and_function: declaration •
+
+    $default  reduce using rule 6 (declaration_and_function)
+
+
+State 78
+
+   15 argument: id • ':' type seperator
+
+    ':'  shift, and go to state 100
+
+
+State 79
+
+   12 function: FUN id '(' arguments • ')' returnValue '{' statements '}'
+
+    ')'  shift, and go to state 101
+
+
+State 80
+
+   13 arguments: argument • arguments
+
+    id  shift, and go to state 78
+
+    $default  reduce using rule 14 (arguments)
+
+    arguments  go to state 102
+    argument   go to state 80
+
+
+State 81
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+   79 constant_declaration: VAL id ':' type '=' expression •
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 79 (constant_declaration)
+
+
+State 82
+
+   39 expression: id '(' expression • ')'
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 103
+
+
+State 83
+
+   49 integer_expression: integer '+' integer •
+
+    $default  reduce using rule 49 (integer_expression)
+
+
+State 84
+
+   51 integer_expression: integer '-' integer •
+
+    $default  reduce using rule 51 (integer_expression)
+
+
+State 85
+
+   52 integer_expression: integer '*' integer •
+
+    $default  reduce using rule 52 (integer_expression)
+
+
+State 86
+
+   53 integer_expression: integer '/' integer •
+
+    $default  reduce using rule 53 (integer_expression)
+
+
+State 87
+
+   38 expression: '(' expression ')' •
+
+    $default  reduce using rule 38 (expression)
+
+
+State 88
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+   72           | expression NE expression •
+
+    $default  reduce using rule 72 (comparison)
+
+
+State 89
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   69           | expression EQ expression •
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    $default  reduce using rule 69 (comparison)
+
+
+State 90
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   71           | expression GE expression •
+   72           | expression • NE expression
+
+    $default  reduce using rule 71 (comparison)
+
+
+State 91
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   68           | expression LE expression •
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    $default  reduce using rule 68 (comparison)
+
+
+State 92
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   70           | expression '>' expression •
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    $default  reduce using rule 70 (comparison)
+
+
+State 93
+
+   67 comparison: expression • '<' expression
+   67           | expression '<' expression •
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    $default  reduce using rule 67 (comparison)
+
+
+State 94
+
+   55 bool_expresssion: boolean '&' boolean •
+
+    $default  reduce using rule 55 (bool_expresssion)
+
+
+State 95
+
+   56 bool_expresssion: boolean '|' boolean •
+
+    $default  reduce using rule 56 (bool_expresssion)
+
+
+State 96
+
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+   83 variable_declaration: VAR id ':' type '=' expression •
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 83 (variable_declaration)
+
+
+State 97
+
+   84 arrays_declaration: VAR id ':' type '[' integer • ']'
+
+    ']'  shift, and go to state 104
+
+
+State 98
+
+    8 declarations_and_functions: declaration_and_function declarations_and_functions •
+
+    $default  reduce using rule 8 (declarations_and_functions)
+
+
+State 99
+
+    5 class: CLASS id '{' declarations_and_functions '}' •
+
+    $default  reduce using rule 5 (class)
+
+
+State 100
+
+   15 argument: id ':' • type seperator
+
+    BOOL    shift, and go to state 28
+    FLOAT   shift, and go to state 29
+    INT     shift, and go to state 30
+    STRING  shift, and go to state 31
+
+    type  go to state 105
+
+
+State 101
+
+   12 function: FUN id '(' arguments ')' • returnValue '{' statements '}'
+
+    ':'  shift, and go to state 106
+
+    $default  reduce using rule 18 (returnValue)
+
+    returnValue  go to state 107
+
+
+State 102
+
+   13 arguments: argument arguments •
+
+    $default  reduce using rule 13 (arguments)
+
+
+State 103
+
+   39 expression: id '(' expression ')' •
+
+    $default  reduce using rule 39 (expression)
+
+
+State 104
+
+   84 arrays_declaration: VAR id ':' type '[' integer ']' •
+
+    $default  reduce using rule 84 (arrays_declaration)
+
+
+State 105
+
+   15 argument: id ':' type • seperator
+
+    ','  shift, and go to state 108
+
+    $default  reduce using rule 17 (seperator)
+
+    seperator  go to state 109
+
+
+State 106
+
+   19 returnValue: ':' • type
+
+    BOOL    shift, and go to state 28
+    FLOAT   shift, and go to state 29
+    INT     shift, and go to state 30
+    STRING  shift, and go to state 31
+
+    type  go to state 110
+
+
+State 107
+
+   12 function: FUN id '(' arguments ')' returnValue • '{' statements '}'
+
+    '{'  shift, and go to state 111
+
+
+State 108
+
+   16 seperator: ',' •
+
+    $default  reduce using rule 16 (seperator)
+
+
+State 109
+
+   15 argument: id ':' type seperator •
+
+    $default  reduce using rule 15 (argument)
+
+
+State 110
+
+   19 returnValue: ':' type •
+
+    $default  reduce using rule 19 (returnValue)
+
+
+State 111
+
+   12 function: FUN id '(' arguments ')' returnValue '{' • statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 120
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 112
+
+   57 condition: IF • '(' expression ')' '{' statements '}'
+   58          | IF • '(' expression ')' statement
+   59          | IF • '(' expression ')' '{' statements '}' ELSE '{' statements '}'
+   60          | IF • '(' expression ')' statement ELSE statement
+   61          | IF • '(' expression ')' statement ELSE '{' statements '}'
+   62          | IF • '(' expression ')' '{' statements '}' ELSE statement
+
+    '('  shift, and go to state 126
+
+
+State 113
+
+   65 loop: FOR • '(' id IN integer '.' '.' integer ')' '{' statements '}'
+   66     | FOR • '(' id IN integer '.' '.' integer ')' statement
+
+    '('  shift, and go to state 127
+
+
+State 114
+
+   31 statement: PRINT • '(' expression ')'
+
+    '('  shift, and go to state 128
+
+
+State 115
+
+   32 statement: PRINTLN • '(' expression ')'
+
+    '('  shift, and go to state 129
+
+
+State 116
+
+   34 return: RETURN • expressions
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    id        [reduce using rule 36 (expressions)]
+    $default  reduce using rule 36 (expressions)
+
+    expressions         go to state 130
+    expression          go to state 131
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 117
+
+   63 loop: WHILE • '(' expression ')' '{' statements '}'
+   64     | WHILE • '(' expression ')' statement
+
+    '('  shift, and go to state 132
+
+
+State 118
+
+   33 statement: READ • id
+
+    id  shift, and go to state 133
+
+
+State 119
+
+   29 statement: id • '=' expression
+
+    '='  shift, and go to state 134
+
+
+State 120
+
+   12 function: FUN id '(' arguments ')' returnValue '{' statements • '}'
+
+    '}'  shift, and go to state 135
+
+
+State 121
+
+   21 statements: statement • statements
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 136
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 122
+
+   30 statement: return •
+
+    $default  reduce using rule 30 (statement)
+
+
+State 123
+
+   27 statement: condition •
+
+    $default  reduce using rule 27 (statement)
+
+
+State 124
+
+   28 statement: loop •
+
+    $default  reduce using rule 28 (statement)
+
+
+State 125
+
+   26 statement: declaration •
+
+    $default  reduce using rule 26 (statement)
+
+
+State 126
+
+   57 condition: IF '(' • expression ')' '{' statements '}'
+   58          | IF '(' • expression ')' statement
+   59          | IF '(' • expression ')' '{' statements '}' ELSE '{' statements '}'
+   60          | IF '(' • expression ')' statement ELSE statement
+   61          | IF '(' • expression ')' statement ELSE '{' statements '}'
+   62          | IF '(' • expression ')' '{' statements '}' ELSE statement
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 137
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 127
+
+   65 loop: FOR '(' • id IN integer '.' '.' integer ')' '{' statements '}'
+   66     | FOR '(' • id IN integer '.' '.' integer ')' statement
+
+    id  shift, and go to state 138
+
+
+State 128
+
+   31 statement: PRINT '(' • expression ')'
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 139
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 129
+
+   32 statement: PRINTLN '(' • expression ')'
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 140
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 130
+
+   34 return: RETURN expressions •
+
+    $default  reduce using rule 34 (return)
+
+
+State 131
+
+   35 expressions: expression •
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 35 (expressions)
+
+
+State 132
+
+   63 loop: WHILE '(' • expression ')' '{' statements '}'
+   64     | WHILE '(' • expression ')' statement
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 141
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 133
+
+   33 statement: READ id •
+
+    $default  reduce using rule 33 (statement)
+
+
+State 134
+
+   29 statement: id '=' • expression
+
+    '-'      shift, and go to state 33
+    TRUE     shift, and go to state 34
+    FALSE    shift, and go to state 35
+    string   shift, and go to state 36
+    id       shift, and go to state 37
+    integer  shift, and go to state 38
+    real     shift, and go to state 39
+    '('      shift, and go to state 40
+    '!'      shift, and go to state 41
+
+    expression          go to state 142
+    boolean             go to state 43
+    integer_expression  go to state 44
+    bool_expresssion    go to state 45
+    comparison          go to state 46
+
+
+State 135
+
+   12 function: FUN id '(' arguments ')' returnValue '{' statements '}' •
+
+    $default  reduce using rule 12 (function)
+
+
+State 136
+
+   21 statements: statement statements •
+
+    $default  reduce using rule 21 (statements)
+
+
+State 137
+
+   57 condition: IF '(' expression • ')' '{' statements '}'
+   58          | IF '(' expression • ')' statement
+   59          | IF '(' expression • ')' '{' statements '}' ELSE '{' statements '}'
+   60          | IF '(' expression • ')' statement ELSE statement
+   61          | IF '(' expression • ')' statement ELSE '{' statements '}'
+   62          | IF '(' expression • ')' '{' statements '}' ELSE statement
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 143
+
+
+State 138
+
+   65 loop: FOR '(' id • IN integer '.' '.' integer ')' '{' statements '}'
+   66     | FOR '(' id • IN integer '.' '.' integer ')' statement
+
+    IN  shift, and go to state 144
+
+
+State 139
+
+   31 statement: PRINT '(' expression • ')'
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 145
+
+
+State 140
+
+   32 statement: PRINTLN '(' expression • ')'
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 146
+
+
+State 141
+
+   63 loop: WHILE '(' expression • ')' '{' statements '}'
+   64     | WHILE '(' expression • ')' statement
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+    ')'  shift, and go to state 147
+
+
+State 142
+
+   29 statement: id '=' expression •
+   67 comparison: expression • '<' expression
+   68           | expression • LE expression
+   69           | expression • EQ expression
+   70           | expression • '>' expression
+   71           | expression • GE expression
+   72           | expression • NE expression
+
+    NE   shift, and go to state 64
+    EQ   shift, and go to state 65
+    GE   shift, and go to state 66
+    LE   shift, and go to state 67
+    '>'  shift, and go to state 68
+    '<'  shift, and go to state 69
+
+    $default  reduce using rule 29 (statement)
+
+
+State 143
+
+   57 condition: IF '(' expression ')' • '{' statements '}'
+   58          | IF '(' expression ')' • statement
+   59          | IF '(' expression ')' • '{' statements '}' ELSE '{' statements '}'
+   60          | IF '(' expression ')' • statement ELSE statement
+   61          | IF '(' expression ')' • statement ELSE '{' statements '}'
+   62          | IF '(' expression ')' • '{' statements '}' ELSE statement
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+    '{'      shift, and go to state 148
+
+    statement             go to state 149
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 144
+
+   65 loop: FOR '(' id IN • integer '.' '.' integer ')' '{' statements '}'
+   66     | FOR '(' id IN • integer '.' '.' integer ')' statement
+
+    integer  shift, and go to state 150
+
+
+State 145
+
+   31 statement: PRINT '(' expression ')' •
+
+    $default  reduce using rule 31 (statement)
+
+
+State 146
+
+   32 statement: PRINTLN '(' expression ')' •
+
+    $default  reduce using rule 32 (statement)
+
+
+State 147
+
+   63 loop: WHILE '(' expression ')' • '{' statements '}'
+   64     | WHILE '(' expression ')' • statement
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+    '{'      shift, and go to state 151
+
+    statement             go to state 152
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 148
+
+   57 condition: IF '(' expression ')' '{' • statements '}'
+   59          | IF '(' expression ')' '{' • statements '}' ELSE '{' statements '}'
+   62          | IF '(' expression ')' '{' • statements '}' ELSE statement
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 153
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 149
+
+   58 condition: IF '(' expression ')' statement •
+   60          | IF '(' expression ')' statement • ELSE statement
+   61          | IF '(' expression ')' statement • ELSE '{' statements '}'
+
+    ELSE  shift, and go to state 154
+
+    $default  reduce using rule 58 (condition)
+
+
+State 150
+
+   65 loop: FOR '(' id IN integer • '.' '.' integer ')' '{' statements '}'
+   66     | FOR '(' id IN integer • '.' '.' integer ')' statement
+
+    '.'  shift, and go to state 155
+
+
+State 151
+
+   63 loop: WHILE '(' expression ')' '{' • statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 156
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 152
+
+   64 loop: WHILE '(' expression ')' statement •
+
+    $default  reduce using rule 64 (loop)
+
+
+State 153
+
+   57 condition: IF '(' expression ')' '{' statements • '}'
+   59          | IF '(' expression ')' '{' statements • '}' ELSE '{' statements '}'
+   62          | IF '(' expression ')' '{' statements • '}' ELSE statement
+
+    '}'  shift, and go to state 157
+
+
+State 154
+
+   60 condition: IF '(' expression ')' statement ELSE • statement
+   61          | IF '(' expression ')' statement ELSE • '{' statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+    '{'      shift, and go to state 158
+
+    statement             go to state 159
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 155
+
+   65 loop: FOR '(' id IN integer '.' • '.' integer ')' '{' statements '}'
+   66     | FOR '(' id IN integer '.' • '.' integer ')' statement
+
+    '.'  shift, and go to state 160
+
+
+State 156
+
+   63 loop: WHILE '(' expression ')' '{' statements • '}'
+
+    '}'  shift, and go to state 161
+
+
+State 157
+
+   57 condition: IF '(' expression ')' '{' statements '}' •
+   59          | IF '(' expression ')' '{' statements '}' • ELSE '{' statements '}'
+   62          | IF '(' expression ')' '{' statements '}' • ELSE statement
+
+    ELSE  shift, and go to state 162
+
+    $default  reduce using rule 57 (condition)
+
+
+State 158
+
+   61 condition: IF '(' expression ')' statement ELSE '{' • statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 163
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 159
+
+   60 condition: IF '(' expression ')' statement ELSE statement •
+
+    $default  reduce using rule 60 (condition)
+
+
+State 160
+
+   65 loop: FOR '(' id IN integer '.' '.' • integer ')' '{' statements '}'
+   66     | FOR '(' id IN integer '.' '.' • integer ')' statement
+
+    integer  shift, and go to state 164
+
+
+State 161
+
+   63 loop: WHILE '(' expression ')' '{' statements '}' •
+
+    $default  reduce using rule 63 (loop)
+
+
+State 162
+
+   59 condition: IF '(' expression ')' '{' statements '}' ELSE • '{' statements '}'
+   62          | IF '(' expression ')' '{' statements '}' ELSE • statement
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+    '{'      shift, and go to state 165
+
+    statement             go to state 166
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 163
+
+   61 condition: IF '(' expression ')' statement ELSE '{' statements • '}'
+
+    '}'  shift, and go to state 167
+
+
+State 164
+
+   65 loop: FOR '(' id IN integer '.' '.' integer • ')' '{' statements '}'
+   66     | FOR '(' id IN integer '.' '.' integer • ')' statement
+
+    ')'  shift, and go to state 168
+
+
+State 165
+
+   59 condition: IF '(' expression ')' '{' statements '}' ELSE '{' • statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 169
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 166
+
+   62 condition: IF '(' expression ')' '{' statements '}' ELSE statement •
+
+    $default  reduce using rule 62 (condition)
+
+
+State 167
+
+   61 condition: IF '(' expression ')' statement ELSE '{' statements '}' •
+
+    $default  reduce using rule 61 (condition)
+
+
+State 168
+
+   65 loop: FOR '(' id IN integer '.' '.' integer ')' • '{' statements '}'
+   66     | FOR '(' id IN integer '.' '.' integer ')' • statement
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+    '{'      shift, and go to state 170
+
+    statement             go to state 171
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 169
+
+   59 condition: IF '(' expression ')' '{' statements '}' ELSE '{' statements • '}'
+
+    '}'  shift, and go to state 172
+
+
+State 170
+
+   65 loop: FOR '(' id IN integer '.' '.' integer ')' '{' • statements '}'
+
+    IF       shift, and go to state 112
+    FOR      shift, and go to state 113
+    PRINT    shift, and go to state 114
+    PRINTLN  shift, and go to state 115
+    RETURN   shift, and go to state 116
+    VAL      shift, and go to state 1
+    VAR      shift, and go to state 2
+    WHILE    shift, and go to state 117
+    READ     shift, and go to state 118
+    id       shift, and go to state 119
+
+    $default  reduce using rule 20 (statements)
+
+    statements            go to state 173
+    statement             go to state 121
+    return                go to state 122
+    condition             go to state 123
+    loop                  go to state 124
+    declaration           go to state 125
+    constant_declaration  go to state 6
+    variable_declaration  go to state 7
+    arrays_declaration    go to state 8
+
+
+State 171
+
+   66 loop: FOR '(' id IN integer '.' '.' integer ')' statement •
+
+    $default  reduce using rule 66 (loop)
+
+
+State 172
+
+   59 condition: IF '(' expression ')' '{' statements '}' ELSE '{' statements '}' •
+
+    $default  reduce using rule 59 (condition)
+
+
+State 173
+
+   65 loop: FOR '(' id IN integer '.' '.' integer ')' '{' statements • '}'
+
+    '}'  shift, and go to state 174
+
+
+State 174
+
+   65 loop: FOR '(' id IN integer '.' '.' integer ')' '{' statements '}' •
+
+    $default  reduce using rule 65 (loop)

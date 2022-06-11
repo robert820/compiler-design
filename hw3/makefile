@@ -1,0 +1,12 @@
+compiler: y.tab.c lex.yy.c SymbolTable.c main.c
+	cc -o compiler -O y.tab.c lex.yy.c SymbolTable.c main.c	-lfl
+
+y.tab.c: hw3.y
+	yacc -d hw3.y
+
+lex.yy.c: hw3.l
+	lex hw3.l
+
+clean:
+	rm lex.yy.c y.tab.c y.tab.h compiler
+
