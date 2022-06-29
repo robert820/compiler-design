@@ -11,15 +11,32 @@ typedef enum identifier_type
     constant_i
 } identifier_type;
 
-typedef enum ValueType
+enum SymbolType
 {
-    void_v,
-    bool_v,
-    int_v,
-    real_v,
-    string_v,
-    unknown_v
-} ValueType;
+    sinteger,
+    sreal,
+    sboolean,
+    sstring,
+    sarray,
+    sfunction,
+    sprocedure,
+    sunknown,
+    none
+};
+
+enum TokenType
+{
+    vint,
+    vreal,
+    vbool,
+    vstring,
+    varray,
+    idList,
+    typeList,
+    idType,
+    vunknown,
+    blank
+};
 
 typedef struct LinkedList
 {
@@ -27,12 +44,12 @@ typedef struct LinkedList
     struct LinkedList *next;
     int index;
     identifier_type type;
-    ValueType valueType;
 } LinkedList;
 
 typedef struct Hash
 {
     struct LinkedList *entries[LINKEDLIST_MAX_SIZE];
+    struct Hash *upper_idtab;
     int size;
 } Hash;
 

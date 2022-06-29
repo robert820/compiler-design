@@ -1,0 +1,42 @@
+class test4 {
+	method public static int add(int, int)
+	max_stack 15
+	max_locals 15
+	{
+iload 0
+iload 1
+		iadd
+		ireturn
+	}
+	method public static int sub(int, int)
+	max_stack 15
+	max_locals 15
+	{
+iload 0
+iload 1
+isub
+		ireturn
+	}
+	method public static void main(java.lang.String[])
+	max_stack 15
+	max_locals 15
+	{
+sipush 5
+sipush 10
+invokestatic int test4.add(int, int)
+sipush 586368
+istore 0
+sipush 7
+sipush 3
+invokestatic int test4.sub(int, int)
+sipush 586368
+istore 1
+		getstatic java.io.PrintStream java.lang.System.out
+iload 0
+		invokevirtual void java.io.PrintStream.println(int)
+		getstatic java.io.PrintStream java.lang.System.out
+iload 1
+		invokevirtual void java.io.PrintStream.println(int)
+		return
+	}
+}

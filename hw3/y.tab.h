@@ -88,11 +88,11 @@ extern int yydebug;
     IN = 289,                      /* IN  */
     TRUE = 290,                    /* TRUE  */
     FALSE = 291,                   /* FALSE  */
-    string = 292,                  /* string  */
+    str = 292,                     /* str  */
     id = 293,                      /* id  */
     integer = 294,                 /* integer  */
     real = 295,                    /* real  */
-    STRING = 296,                  /* STRING  */
+    KW_STRING = 296,               /* KW_STRING  */
     INT = 297,                     /* INT  */
     FLOAT = 298,                   /* FLOAT  */
     BOOL = 299                     /* BOOL  */
@@ -138,11 +138,11 @@ extern int yydebug;
 #define IN 289
 #define TRUE 290
 #define FALSE 291
-#define string 292
+#define str 292
 #define id 293
 #define integer 294
 #define real 295
-#define STRING 296
+#define KW_STRING 296
 #define INT 297
 #define FLOAT 298
 #define BOOL 299
@@ -151,16 +151,18 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 12 "hw3.y"
+#line 370 "hw3.y"
 
-    Hash*          symbol;
-    int                      ivalue;
-    char*                    str;
-    float                    fvalue;
-    _Bool                    bvalue;
-    ValueType                valueType;
+    //Hash*          symbol;
+    //int                      ivalue;
+    //char*                    str;
+    //float                    fvalue;
+    //_Bool                    bvalue;
+    //TokenType                valueType;
+    Token                    token;
+    //ast_node_t*              ast_node;
 
-#line 164 "y.tab.h"
+#line 166 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

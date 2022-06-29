@@ -540,27 +540,28 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "hw2.l"
-#line 2 "hw2.l"
+#line 1 "hw3.l"
+#line 2 "hw3.l"
 #define LIST     strcat(buf,yytext)
 #define token(t) {LIST; printf("<%s>\n",#t);}
 #define tokenInteger(t,i) {LIST; printf("<%s:%s>\n",#t,i); return t;}
 #define tokenReal(t, r)	{LIST; printf("<%s:%s>\n", #t, r); return t;}
-#define tokenString(t,s) {LIST; printf("<%s:%s>\n",#t,s); return t;}
+#define tokenString(t,s) {LIST; printf("<%s:%s>\n",#t,s);}
 
 #define MAX_LINE_LENG 256
 
 
 #include "SymbolTable.h"
+#include "token.h"
 #include "y.tab.h"
 
 int linenum = 1;
 char buf[MAX_LINE_LENG];
 Hash *symbolTable;
 char *dumpResult;
-#line 561 "lex.yy.c"
+#line 562 "lex.yy.c"
 
-#line 563 "lex.yy.c"
+#line 564 "lex.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -779,9 +780,9 @@ YY_DECL
 		}
 
 	{
-#line 29 "hw2.l"
+#line 30 "hw3.l"
 
-#line 784 "lex.yy.c"
+#line 785 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -840,7 +841,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 30 "hw2.l"
+#line 31 "hw3.l"
 {
 	token('.');
 	return('.');
@@ -848,7 +849,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 35 "hw2.l"
+#line 36 "hw3.l"
 {
 	token(',');
 	return(',');
@@ -856,7 +857,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 40 "hw2.l"
+#line 41 "hw3.l"
 {
 	token(':');
 	return(':');
@@ -864,7 +865,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 45 "hw2.l"
+#line 46 "hw3.l"
 {
 	token(';');
 	return(';');
@@ -872,7 +873,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 50 "hw2.l"
+#line 51 "hw3.l"
 {
 	token('->');
 	return(ARROW);
@@ -880,7 +881,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 55 "hw2.l"
+#line 56 "hw3.l"
 {
 	token('(');
 	return('(');
@@ -888,7 +889,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 60 "hw2.l"
+#line 61 "hw3.l"
 {
 	token(')');
 	return(')');
@@ -896,7 +897,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 65 "hw2.l"
+#line 66 "hw3.l"
 {
 	token('[');
 	return('[');
@@ -904,7 +905,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 70 "hw2.l"
+#line 71 "hw3.l"
 {
 	token(']');
 	return(']');
@@ -912,7 +913,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 75 "hw2.l"
+#line 76 "hw3.l"
 {
 	token('{');
 	return('{');
@@ -920,7 +921,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 80 "hw2.l"
+#line 81 "hw3.l"
 {
 	token('}');
 	return('}');
@@ -928,7 +929,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 85 "hw2.l"
+#line 86 "hw3.l"
 {
 	token('+');
 	return('+');
@@ -936,7 +937,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 90 "hw2.l"
+#line 91 "hw3.l"
 {
 	token('-');
 	return('-');
@@ -944,7 +945,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 95 "hw2.l"
+#line 96 "hw3.l"
 {
 	token('*');
 	return('*');
@@ -952,7 +953,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 100 "hw2.l"
+#line 101 "hw3.l"
 {
 	token('/');
 	return('/');
@@ -960,7 +961,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 105 "hw2.l"
+#line 106 "hw3.l"
 {
 	token('%');
 	return('%');
@@ -968,7 +969,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 110 "hw2.l"
+#line 111 "hw3.l"
 {
 	token('<');
 	return('<');
@@ -976,7 +977,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 115 "hw2.l"
+#line 116 "hw3.l"
 {
 	token('<=');
 	return(LE);
@@ -984,7 +985,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 120 "hw2.l"
+#line 121 "hw3.l"
 {
 	token('>=');
 	return(GE);
@@ -992,7 +993,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 125 "hw2.l"
+#line 126 "hw3.l"
 {
 	token('>');
 	return('>');
@@ -1000,7 +1001,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 130 "hw2.l"
+#line 131 "hw3.l"
 {
 	token('==');
 	return(EQ);
@@ -1008,7 +1009,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 135 "hw2.l"
+#line 136 "hw3.l"
 {
 	token('!=');
 	return(NE);
@@ -1016,7 +1017,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 140 "hw2.l"
+#line 141 "hw3.l"
 {
 	token('&');
 	return('&');
@@ -1024,7 +1025,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 145 "hw2.l"
+#line 146 "hw3.l"
 {
 	token('|');
 	return('|');
@@ -1032,7 +1033,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 150 "hw2.l"
+#line 151 "hw3.l"
 {
 	token('!');
 	return('!');
@@ -1040,7 +1041,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 155 "hw2.l"
+#line 156 "hw3.l"
 {
 	token('=');
 	return('=');
@@ -1048,7 +1049,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 160 "hw2.l"
+#line 161 "hw3.l"
 {
 	token('+=');
 	return(AE);
@@ -1056,7 +1057,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 165 "hw2.l"
+#line 166 "hw3.l"
 {
 	token('-=');
 	return(SE);
@@ -1064,7 +1065,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 170 "hw2.l"
+#line 171 "hw3.l"
 {
 	token('*=');
 	return(ME);
@@ -1072,7 +1073,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 175 "hw2.l"
+#line 176 "hw3.l"
 {
 	token('/=');
 	return(DE);
@@ -1080,7 +1081,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 180 "hw2.l"
+#line 181 "hw3.l"
 {
 	token(CLASS);
 	return(CLASS);
@@ -1088,7 +1089,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 185 "hw2.l"
+#line 186 "hw3.l"
 {
 	token(FUN);
 	return(FUN);
@@ -1096,7 +1097,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 190 "hw2.l"
+#line 191 "hw3.l"
 {
 	token(PRINT);
 	return(PRINT);
@@ -1104,7 +1105,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 195 "hw2.l"
+#line 196 "hw3.l"
 {
 	token(BOOL);
 	return(BOOL);
@@ -1112,7 +1113,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 200 "hw2.l"
+#line 201 "hw3.l"
 {
 	token(BREAK);
 	return(BREAK);
@@ -1120,7 +1121,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 205 "hw2.l"
+#line 206 "hw3.l"
 {
 	token(CHAR);
 	return(CHAR);
@@ -1128,7 +1129,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 210 "hw2.l"
+#line 211 "hw3.l"
 {
 	token(CASE);
 	return(CASE);
@@ -1136,7 +1137,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 215 "hw2.l"
+#line 216 "hw3.l"
 {
 		token(CONTINUE);
 		return(CONTINUE);
@@ -1144,7 +1145,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 220 "hw2.l"
+#line 221 "hw3.l"
 {
 		token(DECLARE);
 		return(DECLARE);
@@ -1152,7 +1153,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 225 "hw2.l"
+#line 226 "hw3.l"
 {
 	token(DO);
 	return(DO);
@@ -1160,7 +1161,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 230 "hw2.l"
+#line 231 "hw3.l"
 {
 	token(ELSE);
 	return(ELSE);
@@ -1168,7 +1169,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 235 "hw2.l"
+#line 236 "hw3.l"
 {
 	token(EXIT);
 	return(EXIT);
@@ -1176,7 +1177,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 240 "hw2.l"
+#line 241 "hw3.l"
 {
 	token(FALSE);
 	return(FALSE);
@@ -1184,7 +1185,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 245 "hw2.l"
+#line 246 "hw3.l"
 {
 	token(FLOAT);
 	return(FLOAT);
@@ -1192,7 +1193,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 249 "hw2.l"
+#line 250 "hw3.l"
 {
 	token(FOR);
 	return(FOR);
@@ -1200,7 +1201,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 254 "hw2.l"
+#line 255 "hw3.l"
 {
 	token(IF);
 	return(IF);
@@ -1208,7 +1209,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 259 "hw2.l"
+#line 260 "hw3.l"
 {
 	token(INT);
 	return(INT);
@@ -1216,7 +1217,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 264 "hw2.l"
+#line 265 "hw3.l"
 {
 	token(LOOP);
 	return(LOOP);
@@ -1224,7 +1225,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 269 "hw2.l"
+#line 270 "hw3.l"
 {
 		token(PRINTLN);
 		return(PRINTLN);
@@ -1232,7 +1233,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 274 "hw2.l"
+#line 275 "hw3.l"
 {
 		token(RETURN);
 		return(RETURN);
@@ -1240,15 +1241,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 279 "hw2.l"
+#line 280 "hw3.l"
 {
 		token(STRING);
-		return(STRING);
+		return(KW_STRING);
 		}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 284 "hw2.l"
+#line 285 "hw3.l"
 {
 	token(TRUE);
 	return(TRUE);
@@ -1256,7 +1257,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 289 "hw2.l"
+#line 290 "hw3.l"
 {
 	token(VAL);
 	return(VAL);
@@ -1264,7 +1265,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 294 "hw2.l"
+#line 295 "hw3.l"
 {
 	token(VAR);
 	return(VAR);
@@ -1272,7 +1273,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 299 "hw2.l"
+#line 300 "hw3.l"
 {
 	token(WHILE);
 	return(WHILE);
@@ -1280,7 +1281,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 304 "hw2.l"
+#line 305 "hw3.l"
 {
 	token(READ);
 	return(READ);
@@ -1288,7 +1289,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 309 "hw2.l"
+#line 310 "hw3.l"
 {
 	token(IN);
 	return(IN);
@@ -1296,30 +1297,35 @@ YY_RULE_SETUP
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 314 "hw2.l"
+#line 315 "hw3.l"
 {
+		yylval.token._str = strdup(yytext);
 		tokenString(id, yytext);
+		return(id);
 		insert(symbolTable, yytext);
 		}
 	YY_BREAK
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 319 "hw2.l"
+#line 322 "hw3.l"
 {
+		yylval.token._str = strdup(yytext);
 		tokenString(string, yytext);
+		return(str);
 		}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 323 "hw2.l"
+#line 328 "hw3.l"
 {
+		yylval.token._int = atoi(yytext);
 		tokenInteger(integer, yytext);
 		}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 327 "hw2.l"
+#line 333 "hw3.l"
 {
 		tokenReal(real, yytext);
 		}
@@ -1327,7 +1333,7 @@ YY_RULE_SETUP
 case 62:
 /* rule 62 can match eol */
 YY_RULE_SETUP
-#line 331 "hw2.l"
+#line 337 "hw3.l"
 {
         LIST;
         printf("%d: %s", linenum++, buf);
@@ -1336,12 +1342,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 337 "hw2.l"
+#line 343 "hw3.l"
 { LIST; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 339 "hw2.l"
+#line 345 "hw3.l"
 {
 	LIST;
 	BEGIN(COMMENT);
@@ -1349,7 +1355,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 343 "hw2.l"
+#line 349 "hw3.l"
 {
 		LIST;
 		BEGIN(INITIAL);
@@ -1357,12 +1363,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 347 "hw2.l"
+#line 353 "hw3.l"
 { LIST; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 349 "hw2.l"
+#line 355 "hw3.l"
 {
 	LIST;
 	BEGIN(S_COMMENT);
@@ -1371,7 +1377,7 @@ YY_RULE_SETUP
 case 68:
 /* rule 68 can match eol */
 YY_RULE_SETUP
-#line 353 "hw2.l"
+#line 359 "hw3.l"
 {
 		LIST;
 		printf("%d:%s", linenum++, buf);
@@ -1381,12 +1387,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 359 "hw2.l"
+#line 365 "hw3.l"
 { LIST; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 365 "hw2.l"
+#line 371 "hw3.l"
 {
         LIST;
         printf("%d:%s\n", linenum+1, buf);
@@ -1396,10 +1402,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 371 "hw2.l"
+#line 377 "hw3.l"
 ECHO;
 	YY_BREAK
-#line 1402 "lex.yy.c"
+#line 1408 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 case YY_STATE_EOF(S_COMMENT):
@@ -2406,7 +2412,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 371 "hw2.l"
+#line 377 "hw3.l"
 
 /*
 int main() {

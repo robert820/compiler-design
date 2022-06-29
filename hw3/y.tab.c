@@ -69,16 +69,374 @@
 /* First part of user prologue.  */
 #line 1 "hw3.y"
 
-#include "SymbolTable.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h> 
+#include <string.h>
+#include <string>
+#include <iostream>
+#include <vector>
+#include <map>
+#include "token.h"
+#include "SymbolTable.h"
+#include "SymbolDesc.h"
+
 #define Trace(t)        printf(t)
 extern FILE *yyin;
-int yylex();
-void yyerror(char *s);
+int yylex(void);
+extern "C"
+{
+    int yyparse(void);
+    int yywrap()
+    {
+        return 1;
+    }
+}
 
-#line 82 "y.tab.c"
+void yyerror(char *s);
+FILE *output;
+Hash *idtab, *current_idtab;
+bool has_error = false;
+int varList[255]={-1};
+int size = 0;
+int LabelIndex = 0;
+std::string ClassName;
+
+union uDependency{
+	int low;
+	int high;
+	int baseType;
+	int retType;
+	int argType;
+	
+	int _int;
+	bool _bool;
+	double _real;
+	char * _str;
+	void * value;
+};
+
+struct SymbolDesc
+{
+    int symtype = vunknown;
+    bool readonly = false;
+    bool global = false;
+    bool hasValue = false;
+	bool returnByFun = false;
+    int iValue;
+    char * sValue;
+    bool bValue;
+    std::vector<uDependency> symdeps;
+    int symindex;
+};
+
+
+char* SymType2Str(int type){
+	switch(type){
+	case sinteger :
+		return "int";
+	case sreal :
+		return "float";
+	case sboolean :
+		return "bool";
+	case sstring :
+		return "java.lang.String";
+	case none :
+		return "void";
+	default:
+		return "unknown";
+	}
+}
+std::string SymType2JBStr(int type){
+	switch(type){
+	case sinteger :
+		return "int";
+	case sreal :
+		return "float";
+	case sboolean :
+		return "bool";
+	case sstring :
+		return "java.lang.String";
+	case sarray :
+		return "array";
+	case sfunction :
+		return "function";
+	case sprocedure :
+		return "procedure";
+	case none :
+		return "void";
+	default:
+		return "unknown";
+	}
+}
+
+
+int Symbol2Token(int symbol){
+	switch(symbol){
+		case SymbolType::sinteger:
+			return  TokenType::vint;
+		break;
+		case SymbolType::sreal:
+			return  TokenType::vreal;
+		break;
+		case SymbolType::sstring:
+			return  TokenType::vstring;
+		break;
+		case SymbolType::sboolean:
+			return  TokenType::vbool;
+		break;
+		case SymbolType::none:
+			return TokenType::blank;
+		break;
+		default:
+			return TokenType::vunknown;
+		break;
+	}
+}
+
+int Token2Symbol(int token){
+	switch(token){
+		case vint:
+			return sinteger;
+		break;
+		case vreal : 
+			return sreal;
+		break;
+		case vstring :
+			return sstring;
+		break;
+		case vbool :
+			return sboolean;
+		break;
+		case blank:
+			return none;
+		break;
+		default:
+			return sunknown;
+		break;
+	}
+}
+
+std::vector<std::map<std::string,SymbolDesc>> SymTableStack;
+std::vector<int> SymTableIndexStack;
+std::vector<int> SCOPERET;
+
+void InitialTableStack(){
+	SymTableStack.push_back(std::map<std::string,SymbolDesc>());
+	SymTableIndexStack.push_back(0);
+}
+
+void ENTERSCOPE(){
+	SymTableStack.push_back(std::map<std::string,SymbolDesc>());
+	SymTableIndexStack.push_back(0);
+}
+
+void LEAVESCOPE(){
+	SymTableStack.pop_back();
+	SymTableIndexStack.pop_back();
+}
+
+
+int GETSCOPERETURN(){
+	if(SCOPERET.size()==0){
+		return SymbolType::none;
+	}
+	else {
+		return SCOPERET.back();
+	}
+}
+
+
+
+bool seize(std::string id,SymbolDesc *& sd){
+	for(int i = SymTableStack.size() - 1 ; i>=0;--i){
+		if(SymTableStack[i].count(id)){
+			sd = &(SymTableStack[i][id]);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool seize(std::string id,SymbolDesc & sd){
+	for(int i = SymTableStack.size() - 1 ; i>=0;--i){
+		if(SymTableStack[i].count(id)){
+			sd = (SymTableStack[i][id]);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool inScope(std::string id){
+	if(SymTableStack.back().count(id)){
+		return true;
+	}
+	return false;
+}
+
+bool insert(std::string id,SymbolDesc& sd){
+	if(inScope(id)){
+		return false;
+	}
+	if(sd.symtype <= SymbolType::sarray){
+		//Variable IDs
+		if(!sd.readonly){
+			//Non Constant Variable IDs
+			if(SymTableStack.size()==1){
+				//Global Non Constant Variable IDs
+				sd.global = true;
+				fprintf(output, "\tfield static %s %s", SymType2JBStr(sd.symtype).c_str(), id.c_str());
+                                if(sd.hasValue){
+                                        if(sd.symtype == sinteger){
+                                                fprintf(output, " = %d", sd.iValue);
+                                        }else if(sd.symtype == sboolean){
+                                                if(sd.bValue){
+                                                        fprintf(output, " = true");
+                                                }else{
+                                                        fprintf(output, " = false");
+                                                }
+                                        }else if(sd.symtype == sstring){
+                                                fprintf(output, " = %s", sd.sValue);
+                                        }else if(sd.symtype == sreal){
+                                                fprintf(output, " = %d", sd.iValue);
+                                        }
+                                }
+                                fprintf(output, "\n");
+			}
+			else{
+				//Local Non Constan Variable IDs
+				sd.symindex = (SymTableIndexStack.back())++;
+				if(sd.hasValue){
+					if(!sd.returnByFun){
+						if(sd.symtype == sinteger){
+							printf("...%s %d...", id.c_str(), sd.iValue);
+							fprintf(output, "sipush %d\n", sd.iValue);
+						}else if(sd.symtype == sboolean){
+							if(sd.bValue){
+								fprintf(output, "iconst_1\n");
+							}
+							else {
+								fprintf(output, "iconst_0\n");
+							}
+						}else if(sd.symtype == sstring){
+							fprintf(output, "\t\tldc %s\n", sd.sValue);
+						}else if(sd.symtype == sreal){
+							fprintf(output, "sipush %d\n", sd.iValue);
+						}
+					}
+				}	
+					switch(sd.symtype){
+						case SymbolType::sinteger:
+						fprintf(output, "istore %d\n",  sd.symindex);
+						break;
+						case SymbolType::sreal:
+						fprintf(output, "fstore  %d\n", sd.symindex);
+						break;
+						case SymbolType::sstring:
+						fprintf(output, "astore  %d\n", sd.symindex);
+						break;
+					}	
+			}
+		}
+	}
+	else{
+		//Unknown,Function,Procedure IDs
+	}
+	SymTableStack.back()[id] = sd;
+	return true;
+}
+
+bool insert(std::vector<std::string> list,SymbolDesc& sd){
+	bool success = true;
+	for(int i = 0 ; i < list.size() ; ++i){
+		insert(list[i],sd);
+	}
+	return success;
+}
+
+bool insert(std::string id,SymbolDesc& sd,int scope){
+	std::map<std::string,SymbolDesc> & EarlyScope =   SymTableStack[SymTableStack.size()-1-scope];
+	int & EarlySymIndex = SymTableIndexStack[SymTableIndexStack.size()-scope];
+	if(EarlyScope.count(id)){
+		return false;
+	}
+	if(sd.symtype <= SymbolType::sarray){
+		//Variable IDs
+		if(!sd.readonly){
+			//Non Constant Variable IDs
+			if(SymTableStack.size() - scope == 1){
+				//Global Non Constant Variable IDs
+				sd.global = true;
+				fprintf(output, "field static %s %s\n", SymType2JBStr(sd.symtype).c_str(), id.c_str());
+			}
+			else{
+				//Local Non Constan Variable IDs
+				sd.symindex = EarlySymIndex++;
+				// switch(sd.symtype){
+				// 	case SymbolType::sinteger:
+				// 	fprintf(output, "istore %d\n",  sd.symindex);
+				// 	break;
+				// 	case SymbolType::sreal:
+				// 	fprintf(output, "fstore  %d\n", sd.symindex);
+				// 	break;
+				// 	case SymbolType::sstring:
+				// 	fprintf(output, "astore  %d\n", sd.symindex);
+				// 	break;
+				// }		
+			}
+		}
+	}
+	else{
+		//Unknown,Function,Procedure IDs
+	}
+	EarlyScope[id] = sd;
+	return true;
+}
+
+bool insertArg(std::string id,SymbolDesc& sd){
+	if(inScope(id)){
+		return false;
+	}
+	sd.symindex = (SymTableIndexStack.back())++;
+	SymTableStack.back()[id] = sd;
+	return true;
+}
+
+void insertList(int type){
+        varList[size++] = type;
+}
+
+void resetList(){
+        int i = 0;
+        for(i;i<255;i++){
+                varList[i] = -1;
+        }
+}
+
+bool matchArgs(std::vector<int>& list,SymbolDesc & sd){
+	if(list.size()  != sd.symdeps.size() - 1){
+		return false;
+	}
+	else{
+		for(int i = 0; i < list.size();++i){
+			if(list[i] !=sd.symdeps[i+1].argType) return false;
+		}	
+	}
+	return true;
+}
+
+// ast_node_t* n(ast_node_type_t t, YYLTYPE l) { return new_ast_node(t, l.first_line, l.first_column); }
+// void vid(ast_node_t *n, LinkedList *v) { if (v) ast_node_set_value_identifier(n, v); }
+// void vopt(ast_node_t *n, int v) { ast_node_set_value_operatr(n, v); }
+// void vint(ast_node_t *n, int v) { ast_node_set_value_integer(n, v); }
+// void vstr(ast_node_t *n, char *v) { ast_node_set_value_string(n, v); }
+// void ich(ast_node_t *n, ast_node_t *child) { ast_node_insert_child(n, child); }
+// void isb(ast_node_t *n, ast_node_t *sibling) { ast_node_insert_sibling(n, sibling); }
+// void esp(LinkedList *sid) { current_idtab = idtab_entry_idtab_create(current_idtab, sid); }
+// void lsp() { if (current_idtab->upper_idtab) current_idtab = current_idtab->upper_idtab; }
+
+#line 440 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -156,11 +514,11 @@ extern int yydebug;
     IN = 289,                      /* IN  */
     TRUE = 290,                    /* TRUE  */
     FALSE = 291,                   /* FALSE  */
-    string = 292,                  /* string  */
+    str = 292,                     /* str  */
     id = 293,                      /* id  */
     integer = 294,                 /* integer  */
     real = 295,                    /* real  */
-    STRING = 296,                  /* STRING  */
+    KW_STRING = 296,               /* KW_STRING  */
     INT = 297,                     /* INT  */
     FLOAT = 298,                   /* FLOAT  */
     BOOL = 299                     /* BOOL  */
@@ -206,11 +564,11 @@ extern int yydebug;
 #define IN 289
 #define TRUE 290
 #define FALSE 291
-#define string 292
+#define str 292
 #define id 293
 #define integer 294
 #define real 295
-#define STRING 296
+#define KW_STRING 296
 #define INT 297
 #define FLOAT 298
 #define BOOL 299
@@ -219,16 +577,18 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 12 "hw3.y"
+#line 370 "hw3.y"
 
-    Hash*          symbol;
-    int                      ivalue;
-    char*                    str;
-    float                    fvalue;
-    _Bool                    bvalue;
-    ValueType                valueType;
+    //Hash*          symbol;
+    //int                      ivalue;
+    //char*                    str;
+    //float                    fvalue;
+    //_Bool                    bvalue;
+    //TokenType                valueType;
+    Token                    token;
+    //ast_node_t*              ast_node;
 
-#line 232 "y.tab.c"
+#line 592 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -291,11 +651,11 @@ enum yysymbol_kind_t
   YYSYMBOL_IN = 40,                        /* IN  */
   YYSYMBOL_TRUE = 41,                      /* TRUE  */
   YYSYMBOL_FALSE = 42,                     /* FALSE  */
-  YYSYMBOL_string = 43,                    /* string  */
+  YYSYMBOL_str = 43,                       /* str  */
   YYSYMBOL_id = 44,                        /* id  */
   YYSYMBOL_integer = 45,                   /* integer  */
   YYSYMBOL_real = 46,                      /* real  */
-  YYSYMBOL_STRING = 47,                    /* STRING  */
+  YYSYMBOL_KW_STRING = 47,                 /* KW_STRING  */
   YYSYMBOL_INT = 48,                       /* INT  */
   YYSYMBOL_FLOAT = 49,                     /* FLOAT  */
   YYSYMBOL_BOOL = 50,                      /* BOOL  */
@@ -306,42 +666,56 @@ enum yysymbol_kind_t
   YYSYMBOL_55_ = 55,                       /* ':'  */
   YYSYMBOL_56_ = 56,                       /* ','  */
   YYSYMBOL_57_ = 57,                       /* '='  */
-  YYSYMBOL_58_ = 58,                       /* '!'  */
-  YYSYMBOL_59_ = 59,                       /* '&'  */
-  YYSYMBOL_60_ = 60,                       /* '|'  */
-  YYSYMBOL_61_ = 61,                       /* '.'  */
-  YYSYMBOL_62_ = 62,                       /* '['  */
-  YYSYMBOL_63_ = 63,                       /* ']'  */
-  YYSYMBOL_YYACCEPT = 64,                  /* $accept  */
-  YYSYMBOL_program = 65,                   /* program  */
-  YYSYMBOL_classes = 66,                   /* classes  */
+  YYSYMBOL_58_ = 58,                       /* '%'  */
+  YYSYMBOL_59_ = 59,                       /* '!'  */
+  YYSYMBOL_60_ = 60,                       /* '&'  */
+  YYSYMBOL_61_ = 61,                       /* '|'  */
+  YYSYMBOL_62_ = 62,                       /* '.'  */
+  YYSYMBOL_63_ = 63,                       /* '['  */
+  YYSYMBOL_64_ = 64,                       /* ']'  */
+  YYSYMBOL_YYACCEPT = 65,                  /* $accept  */
+  YYSYMBOL_program = 66,                   /* program  */
   YYSYMBOL_class = 67,                     /* class  */
-  YYSYMBOL_declaration_and_function = 68,  /* declaration_and_function  */
-  YYSYMBOL_declarations_and_functions = 69, /* declarations_and_functions  */
-  YYSYMBOL_functions = 70,                 /* functions  */
+  YYSYMBOL_68_1 = 68,                      /* $@1  */
+  YYSYMBOL_declaration_and_function = 69,  /* declaration_and_function  */
+  YYSYMBOL_declarations_and_functions = 70, /* declarations_and_functions  */
   YYSYMBOL_function = 71,                  /* function  */
-  YYSYMBOL_arguments = 72,                 /* arguments  */
-  YYSYMBOL_argument = 73,                  /* argument  */
-  YYSYMBOL_seperator = 74,                 /* seperator  */
-  YYSYMBOL_returnType = 75,                /* returnType  */
-  YYSYMBOL_statements = 76,                /* statements  */
-  YYSYMBOL_type = 77,                      /* type  */
-  YYSYMBOL_statement = 78,                 /* statement  */
-  YYSYMBOL_return = 79,                    /* return  */
-  YYSYMBOL_returnValue = 80,               /* returnValue  */
-  YYSYMBOL_expression = 81,                /* expression  */
-  YYSYMBOL_expression_list = 82,           /* expression_list  */
-  YYSYMBOL_boolean = 83,                   /* boolean  */
-  YYSYMBOL_integer_expression = 84,        /* integer_expression  */
-  YYSYMBOL_bool_expresssion = 85,          /* bool_expresssion  */
-  YYSYMBOL_condition = 86,                 /* condition  */
-  YYSYMBOL_loop = 87,                      /* loop  */
-  YYSYMBOL_comparison = 88,                /* comparison  */
-  YYSYMBOL_declarations = 89,              /* declarations  */
-  YYSYMBOL_declaration = 90,               /* declaration  */
-  YYSYMBOL_constant_declaration = 91,      /* constant_declaration  */
-  YYSYMBOL_variable_declaration = 92,      /* variable_declaration  */
-  YYSYMBOL_arrays_declaration = 93         /* arrays_declaration  */
+  YYSYMBOL_72_2 = 72,                      /* $@2  */
+  YYSYMBOL_73_3 = 73,                      /* @3  */
+  YYSYMBOL_arguments = 74,                 /* arguments  */
+  YYSYMBOL_argument = 75,                  /* argument  */
+  YYSYMBOL_seperator = 76,                 /* seperator  */
+  YYSYMBOL_returnType = 77,                /* returnType  */
+  YYSYMBOL_statements = 78,                /* statements  */
+  YYSYMBOL_type = 79,                      /* type  */
+  YYSYMBOL_statement = 80,                 /* statement  */
+  YYSYMBOL_81_4 = 81,                      /* $@4  */
+  YYSYMBOL_82_5 = 82,                      /* $@5  */
+  YYSYMBOL_return = 83,                    /* return  */
+  YYSYMBOL_returnValue = 84,               /* returnValue  */
+  YYSYMBOL_declaration_value = 85,         /* declaration_value  */
+  YYSYMBOL_expression = 86,                /* expression  */
+  YYSYMBOL_expression_list = 87,           /* expression_list  */
+  YYSYMBOL_boolean = 88,                   /* boolean  */
+  YYSYMBOL_integer_expression = 89,        /* integer_expression  */
+  YYSYMBOL_bool_expresssion = 90,          /* bool_expresssion  */
+  YYSYMBOL_condition = 91,                 /* condition  */
+  YYSYMBOL_92_6 = 92,                      /* $@6  */
+  YYSYMBOL_93_7 = 93,                      /* $@7  */
+  YYSYMBOL_94_8 = 94,                      /* $@8  */
+  YYSYMBOL_95_9 = 95,                      /* $@9  */
+  YYSYMBOL_IF_PREACT = 96,                 /* IF_PREACT  */
+  YYSYMBOL_loop = 97,                      /* loop  */
+  YYSYMBOL_98_10 = 98,                     /* @10  */
+  YYSYMBOL_99_11 = 99,                     /* $@11  */
+  YYSYMBOL_100_12 = 100,                   /* @12  */
+  YYSYMBOL_101_13 = 101,                   /* $@13  */
+  YYSYMBOL_one_or_multiple_line = 102,     /* one_or_multiple_line  */
+  YYSYMBOL_comparison = 103,               /* comparison  */
+  YYSYMBOL_declaration = 104,              /* declaration  */
+  YYSYMBOL_constant_declaration = 105,     /* constant_declaration  */
+  YYSYMBOL_variable_declaration = 106,     /* variable_declaration  */
+  YYSYMBOL_arrays_declaration = 107        /* arrays_declaration  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -667,18 +1041,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  11
+#define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   453
+#define YYLAST   556
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  64
+#define YYNTOKENS  65
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  30
+#define YYNNTS  43
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  90
+#define YYNRULES  109
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  180
+#define YYNSTATES  189
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   299
@@ -698,16 +1072,16 @@ static const yytype_int8 yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    58,     2,     2,     2,     2,    59,     2,
-      53,    54,    16,    14,    56,    15,    61,    17,     2,     2,
+       2,     2,     2,    59,     2,     2,     2,    58,    60,     2,
+      53,    54,    16,    14,    56,    15,    62,    17,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,    55,     2,
       13,    57,    12,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    62,     2,    63,     2,     2,     2,     2,     2,     2,
+       2,    63,     2,    64,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    51,    60,    52,     2,     2,     2,     2,
+       2,     2,     2,    51,    61,    52,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -729,18 +1103,19 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    73,    73,    74,    77,    78,    81,    87,    88,    91,
-      92,    97,    98,   101,   104,   105,   108,   110,   111,   114,
-     115,   118,   119,   122,   123,   124,   125,   128,   129,   130,
-     131,   132,   133,   134,   135,   136,   137,   140,   143,   144,
-     147,   148,   149,   150,   151,   152,   153,   154,   155,   156,
-     159,   160,   161,   164,   165,   168,   169,   170,   171,   172,
-     175,   176,   177,   180,   181,   182,   183,   184,   185,   188,
-     189,   190,   191,   194,   195,   196,   197,   198,   199,   202,
-     203,   206,   207,   208,   211,   212,   215,   216,   217,   218,
-     221
+       0,   434,   434,   435,   436,   437,   444,   444,   455,   456,
+     459,   460,   469,   472,   469,   528,   547,   573,   579,   580,
+     583,   587,   592,   593,   596,   597,   598,   599,   602,   603,
+     604,   605,   634,   638,   638,   663,   663,   687,   690,   693,
+     694,   696,   699,   702,   735,   738,   739,   837,   843,   849,
+     855,   864,   867,   870,   904,   907,   910,  1007,  1013,  1019,
+    1025,  1033,  1037,  1043,  1050,  1051,  1054,  1059,  1064,  1069,
+    1074,  1079,  1086,  1090,  1094,  1100,  1106,  1112,  1112,  1122,
+    1122,  1132,  1132,  1142,  1142,  1155,  1162,  1166,  1162,  1180,
+    1195,  1180,  1223,  1224,  1227,  1239,  1251,  1263,  1275,  1287,
+    1305,  1306,  1307,  1310,  1333,  1359,  1367,  1376,  1397,  1420
 };
 #endif
 
@@ -761,16 +1136,17 @@ static const char *const yytname[] =
   "'/'", "UMINUS", "LOWER_THAN_ELSE", "ELSE", "BREAK", "CHAR", "CASE",
   "CLASS", "CONTINUE", "DECLARE", "DO", "IF", "EXIT", "FOR", "FUN", "LOOP",
   "PRINT", "PRINTLN", "RETURN", "VAL", "VAR", "WHILE", "READ", "IN",
-  "TRUE", "FALSE", "string", "id", "integer", "real", "STRING", "INT",
-  "FLOAT", "BOOL", "'{'", "'}'", "'('", "')'", "':'", "','", "'='", "'!'",
-  "'&'", "'|'", "'.'", "'['", "']'", "$accept", "program", "classes",
-  "class", "declaration_and_function", "declarations_and_functions",
-  "functions", "function", "arguments", "argument", "seperator",
-  "returnType", "statements", "type", "statement", "return", "returnValue",
-  "expression", "expression_list", "boolean", "integer_expression",
-  "bool_expresssion", "condition", "loop", "comparison", "declarations",
-  "declaration", "constant_declaration", "variable_declaration",
-  "arrays_declaration", YY_NULLPTR
+  "TRUE", "FALSE", "str", "id", "integer", "real", "KW_STRING", "INT",
+  "FLOAT", "BOOL", "'{'", "'}'", "'('", "')'", "':'", "','", "'='", "'%'",
+  "'!'", "'&'", "'|'", "'.'", "'['", "']'", "$accept", "program", "class",
+  "$@1", "declaration_and_function", "declarations_and_functions",
+  "function", "$@2", "@3", "arguments", "argument", "seperator",
+  "returnType", "statements", "type", "statement", "$@4", "$@5", "return",
+  "returnValue", "declaration_value", "expression", "expression_list",
+  "boolean", "integer_expression", "bool_expresssion", "condition", "$@6",
+  "$@7", "$@8", "$@9", "IF_PREACT", "loop", "@10", "$@11", "@12", "$@13",
+  "one_or_multiple_line", "comparison", "declaration",
+  "constant_declaration", "variable_declaration", "arrays_declaration", YY_NULLPTR
 };
 
 static const char *
@@ -780,12 +1156,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-49)
+#define YYPACT_NINF (-160)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-42)
+#define YYTABLE_NINF (-82)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -794,24 +1170,25 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -30,   -41,   -15,    18,    14,   -26,   -49,   -49,   -49,   -31,
-     -22,   -49,    -7,    14,    16,    -8,   -49,   -30,     7,   251,
-       7,   251,    29,   -30,    14,    12,   -30,    -8,   -49,   -49,
-     -49,   -49,    19,   251,   -49,   -49,   -49,    30,   -49,   -49,
-     251,   251,   231,   -49,   -49,   -49,   -49,   -40,   231,   -26,
-     -49,   -49,    55,   -49,   -49,   251,    13,   251,    78,   231,
-     251,   251,   251,   251,   251,   251,   251,   251,   251,   251,
-     251,   251,   251,    56,   -26,    50,   -49,   -49,    48,    51,
-      55,   231,   231,    25,   -49,    -1,    -1,    -1,    -1,    -1,
-      -1,    15,    15,    13,    13,   231,   231,   231,    43,   -49,
-     -49,     7,    52,   -49,   -49,   251,   -49,    53,     7,    66,
-     231,   -49,   -49,   -49,   409,    67,    68,   269,   288,   251,
-      69,    79,    70,    72,   409,   -49,   -49,   -49,   -49,   251,
-      82,   251,   231,   251,   231,   -49,   231,   251,   -49,   251,
-     -49,   -49,   133,    89,   144,   155,   166,   231,   314,   251,
-     242,   242,   333,   409,   110,    54,   409,   -49,    81,   352,
-      73,    83,   111,   409,   -49,   251,   -49,   371,    84,   220,
-     409,   -49,   -49,   390,    87,   409,   -49,   -49,   103,   -49
+    -160,   135,  -160,   -28,   -16,   -12,     7,  -160,  -160,  -160,
+    -160,  -160,  -160,    23,  -160,    -1,    13,  -160,     6,   -36,
+     429,   -36,   429,    -7,  -160,  -160,  -160,  -160,  -160,    28,
+     454,  -160,  -160,   220,   104,   275,   286,   454,   454,  -160,
+     297,   308,   363,   374,   385,    10,  -160,    -7,    42,  -160,
+    -160,   -29,   429,  -160,    44,  -160,  -160,   454,    21,  -160,
+    -160,  -160,  -160,   454,   116,   297,   454,   454,   454,   454,
+     454,   454,   454,   454,   454,   454,   454,   454,   454,   429,
+      53,  -160,  -160,    45,    46,  -160,  -160,   454,   132,   297,
+      15,   396,    76,    76,    76,    76,    76,    76,     5,     5,
+      21,    21,   297,   297,   297,  -160,    35,   -36,   -36,  -160,
+      30,  -160,   451,   454,  -160,    47,  -160,   486,  -160,   297,
+    -160,  -160,    49,    51,  -160,  -160,   454,  -160,    61,    81,
+     145,  -160,  -160,  -160,  -160,  -160,  -160,   454,    62,   454,
+     454,  -160,   297,    55,  -160,   454,    98,   145,   187,   111,
+     297,   297,   454,   297,  -160,  -160,  -160,   454,   198,   505,
+     297,  -160,   145,   133,    90,   486,   102,   105,    93,  -160,
+     138,   145,   109,   454,   110,  -160,   145,   209,   112,   145,
+     115,  -160,   145,  -160,  -160,   486,   117,  -160,  -160
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -819,40 +1196,45 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-      80,     0,     0,     0,     0,    80,    81,    82,    83,     0,
-      86,     1,     0,     5,     0,    12,    79,    80,     0,     0,
-       0,     0,     0,    80,     5,     0,    80,    12,    23,    24,
-      26,    25,     0,     0,    53,    54,    47,    45,    46,    49,
-       0,     0,    84,    48,    40,    43,    44,    87,    88,    10,
-       3,     4,    15,     2,    11,     0,    56,    50,     0,    60,
+       5,     0,     1,     0,     0,     0,     0,     4,     3,     2,
+     100,   101,   102,     0,    12,     0,   105,     6,     0,     0,
+       0,     0,     0,    11,    16,    24,    25,    27,    26,     0,
+       0,    64,    65,    48,    46,    47,    50,     0,     0,   103,
+       0,    49,    41,    44,    45,   106,   107,    11,     0,     9,
+       8,     0,     0,    58,    56,    57,    60,     0,    67,    59,
+      51,    54,    55,    61,     0,    72,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    10,     0,     8,     7,     0,     0,
-      15,    85,    51,     0,    41,    78,    75,    77,    74,    76,
-      73,    55,    57,    58,    59,    61,    62,    89,     0,     9,
-       6,     0,    19,    14,    42,     0,    90,    18,     0,     0,
-      52,    17,    16,    20,    21,     0,     0,     0,     0,    39,
-       0,     0,     0,     0,    21,    31,    28,    29,    27,     0,
-       0,     0,    33,     0,    35,    37,    38,     0,    36,     0,
-      13,    22,     0,     0,     0,     0,     0,    30,     0,     0,
-      32,    34,     0,    21,    64,     0,    21,    70,     0,     0,
-       0,     0,    63,    21,    66,     0,    69,     0,     0,     0,
-      21,    68,    67,     0,     0,    21,    72,    65,     0,    71
+       0,    10,     7,     0,    20,    15,   104,    61,     0,    62,
+       0,    42,    99,    96,    98,    95,    97,    94,    66,    68,
+      69,    70,    71,    73,    74,   108,     0,     0,     0,    13,
+       0,    52,    43,     0,   109,    19,    21,     0,    53,    63,
+      18,    17,     0,     0,    33,    35,    40,    86,     0,     0,
+      22,    93,    32,    29,    30,    14,    28,     0,     0,     0,
+       0,    38,    39,     0,    37,     0,     0,    22,     0,     0,
+      34,    36,     0,    31,    92,    23,    85,     0,     0,     0,
+      89,    87,    22,    76,     0,     0,     0,    79,     0,    88,
+      75,     0,     0,     0,    83,    80,    22,     0,     0,     0,
+       0,    90,    22,    84,    82,     0,     0,    91,    78
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -49,   -49,   142,   173,   -49,   112,   157,     3,   105,   -49,
-     -49,   -49,   107,   -19,   -48,   -49,   -49,   -21,   -49,   -49,
-     -49,   -49,   -49,   -49,   -49,     2,     4,   -49,   -49,   -49
+    -160,  -160,  -160,  -160,  -160,   121,   184,  -160,  -160,  -160,
+    -160,  -160,  -160,   -87,   -20,  -107,  -160,  -160,  -160,  -160,
+       1,   -30,   100,   -18,   -17,    -3,  -160,  -160,  -160,  -160,
+    -160,  -160,  -160,  -160,  -160,  -160,  -160,  -159,    -2,     8,
+    -160,  -160,  -160
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
-       0,     3,    23,    24,    74,    75,    26,    27,    79,    80,
-     112,   109,   123,    32,   124,   125,   135,    42,    83,    43,
-      44,    45,   126,   127,    46,    16,   128,     6,     7,     8
+       0,     1,     7,    23,    47,    48,    49,    18,   117,    51,
+      85,   121,   109,   146,    29,   147,   139,   140,   132,   141,
+      39,    40,    90,    59,    60,    61,   133,   178,   171,   172,
+     179,   159,   134,   143,   165,   164,   185,   135,    62,   136,
+      10,    11,    12
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -860,156 +1242,179 @@ static const yytype_uint8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      48,    47,     4,     9,     5,    14,     1,     2,    15,    17,
-       1,     2,    56,    66,    67,    68,    69,    72,    11,    58,
-      59,    17,    73,    14,    18,    50,    19,    17,    53,    10,
-      17,    68,    69,    20,    81,    21,    82,    22,    12,    85,
-      86,    87,    88,    89,    90,    91,    92,    93,    94,    95,
-      96,    97,    76,    77,    28,    29,    30,    31,    70,    71,
-      25,    60,    61,    62,    63,    52,    64,    65,    66,    67,
-      68,    69,    70,    71,    70,    71,    55,    76,    77,   104,
-      49,   105,   107,    57,   110,    60,    61,    62,    63,   113,
-      64,    65,    66,    67,    68,    69,   132,   134,   136,    78,
-     154,    98,   100,   101,   157,   102,   106,   108,   142,   111,
-     144,   164,   145,    70,    71,   160,   146,   114,   147,   171,
-     129,   130,   137,   138,   140,   176,   143,   139,   155,   149,
-     159,   167,    84,   162,   165,   166,   172,    70,    71,   177,
-      60,    61,    62,    63,   169,    64,    65,    66,    67,    68,
-      69,    60,    61,    62,    63,   179,    64,    65,    66,    67,
-      68,    69,    60,    61,    62,    63,    51,    64,    65,    66,
-      67,    68,    69,    60,    61,    62,    63,    13,    64,    65,
-      66,    67,    68,    69,    54,   103,    99,   148,     0,     0,
-       0,     0,    70,    71,     0,     0,     0,     0,   150,     0,
-       0,     0,     0,    70,    71,     0,     0,     0,     0,   151,
-       0,     0,     0,     0,    70,    71,     0,     0,     0,     0,
-     152,     0,     0,     0,     0,    70,    71,    60,    61,    62,
-      63,   141,    64,    65,    66,    67,    68,    69,    60,    61,
-      62,    63,     0,    64,    65,    66,    67,    68,    69,   -41,
-     -41,   -41,   -41,     0,   -41,   -41,   -41,   -41,   -41,   -41,
-     158,     0,     0,   161,     0,     0,    33,     0,     0,     0,
-     168,     0,     0,     0,   173,     0,     0,   174,     0,    70,
-      71,     0,   178,     0,    33,     0,     0,     0,     0,     0,
-      70,    71,    34,    35,    36,    37,    38,    39,     0,     0,
-       0,   -41,   -41,    33,    40,     0,     0,     0,     0,    41,
-      34,    35,    36,    37,    38,    39,     0,     0,     0,     0,
-       0,     0,   131,     0,     0,     0,     0,    41,     0,    34,
-      35,    36,    37,    38,    39,     0,     0,     0,     0,     0,
-       0,   133,   115,     0,   116,     0,    41,   117,   118,   119,
-       1,     2,   120,   121,     0,     0,     0,     0,   122,     0,
-       0,   115,     0,   116,     0,   153,   117,   118,   119,     1,
-       2,   120,   121,     0,     0,     0,     0,   122,     0,     0,
-     115,     0,   116,     0,   156,   117,   118,   119,     1,     2,
-     120,   121,     0,     0,     0,     0,   122,     0,     0,   115,
-       0,   116,     0,   163,   117,   118,   119,     1,     2,   120,
-     121,     0,     0,     0,     0,   122,     0,     0,   115,     0,
-     116,     0,   170,   117,   118,   119,     1,     2,   120,   121,
-       0,     0,     0,     0,   122,     0,     0,   115,     0,   116,
-       0,   175,   117,   118,   119,     1,     2,   120,   121,     0,
-       0,     0,     0,   122
+      58,    45,    41,    42,    41,    42,   169,    64,    65,     9,
+     131,    25,    26,    27,    28,    83,    13,    43,    44,    43,
+      44,    74,    75,    46,     4,    84,   187,    88,    14,     5,
+       6,    50,    15,    89,    41,    42,    92,    93,    94,    95,
+      96,    97,    98,    99,   100,   101,   102,   103,   104,    43,
+      44,    16,   163,    86,    19,    50,    20,    89,   131,    24,
+     155,    41,    42,    76,   175,    77,    78,    79,    21,   112,
+      22,   113,   183,    80,    17,   166,    43,    44,   131,    76,
+     105,    77,    78,   119,   118,    52,   113,   115,   116,   180,
+      72,    73,    74,    75,    82,   186,   142,    87,   106,   114,
+     107,   108,   137,   120,   138,   144,   149,   148,   152,   150,
+     151,   -56,   -56,   -56,   -56,   153,   -56,   -56,   -56,   -56,
+     -56,   -56,   158,    66,    67,    68,    69,   160,    70,    71,
+      72,    73,    74,    75,    76,     2,    77,    78,   145,    66,
+      67,    68,    69,   177,    70,    71,    72,    73,    74,    75,
+     154,   157,   168,   167,   170,   173,   -81,    63,   174,     3,
+     176,   -77,   -56,   182,   -56,   -56,     4,   184,    81,   188,
+      91,     5,     6,   122,    76,   123,    77,    78,   124,   125,
+     126,     5,     6,   127,   128,     8,   111,   110,     0,   129,
+      76,     0,    77,    78,    66,    67,    68,    69,     0,    70,
+      71,    72,    73,    74,    75,    66,    67,    68,    69,     0,
+      70,    71,    72,    73,    74,    75,    66,    67,    68,    69,
+       0,    70,    71,    72,    73,    74,    75,   -58,   -58,   -58,
+     -58,     0,   -58,   -58,   -58,   -58,   -58,   -58,     0,     0,
+       0,   156,     0,     0,     0,    76,     0,    77,    78,     0,
+       0,     0,   161,     0,     0,     0,    76,     0,    77,    78,
+       0,     0,     0,   181,     0,     0,     0,    76,     0,    77,
+      78,     0,     0,     0,     0,     0,     0,     0,   -58,     0,
+     -58,   -58,   -57,   -57,   -57,   -57,     0,   -57,   -57,   -57,
+     -57,   -57,   -57,   -60,   -60,   -60,   -60,     0,   -60,   -60,
+     -60,   -60,   -60,   -60,    66,    67,    68,    69,     0,    70,
+      71,    72,    73,    74,    75,   -59,   -59,   -59,   -59,     0,
+     -59,   -59,   -59,   -59,   -59,   -59,     0,     0,     0,     0,
+       0,     0,     0,   -57,     0,   -57,   -57,     0,     0,     0,
+       0,     0,     0,     0,   -60,     0,   -60,   -60,     0,     0,
+       0,     0,     0,     0,     0,    76,     0,    77,    78,     0,
+       0,     0,     0,     0,     0,     0,   -59,     0,   -59,   -59,
+     -51,   -51,   -51,   -51,     0,   -51,   -51,   -51,   -51,   -51,
+     -51,   -54,   -54,   -54,   -54,     0,   -54,   -54,   -54,   -54,
+     -54,   -54,   -55,   -55,   -55,   -55,     0,   -55,   -55,   -55,
+     -55,   -55,   -55,   -52,   -52,   -52,   -52,     0,   -52,   -52,
+     -52,   -52,   -52,   -52,     0,     0,     0,     0,     0,     0,
+       0,   -51,     0,   -51,   -51,     0,     0,     0,     0,     0,
+       0,     0,   -54,     0,   -54,   -54,     0,     0,     0,     0,
+       0,     0,     0,   -55,    30,   -55,   -55,     0,     0,     0,
+       0,     0,     0,     0,   -52,     0,   -52,   -52,   -53,   -53,
+     -53,   -53,     0,   -53,   -53,   -53,   -53,   -53,   -53,    30,
+      31,    32,    33,    34,    35,    36,     0,     0,     0,     0,
+       0,     0,    37,     0,     0,     0,     0,     0,    38,     0,
+       0,     0,     0,     0,     0,    31,    32,    53,    54,    55,
+      56,     0,     0,     0,     0,     0,     0,    57,     0,   -53,
+       0,   -53,   -53,    38,   122,     0,   123,     0,     0,   124,
+     125,   126,     5,     6,   127,   128,     0,     0,     0,     0,
+     129,     0,     0,   122,     0,   123,     0,   130,   124,   125,
+     126,     5,     6,   127,   128,     0,     0,     0,     0,   129,
+       0,     0,     0,     0,     0,     0,   162
 };
 
 static const yytype_int16 yycheck[] =
 {
-      21,    20,     0,    44,     0,    31,    36,    37,     5,     5,
-      36,    37,    33,    14,    15,    16,    17,    57,     0,    40,
-      41,    17,    62,    31,    55,    23,    57,    23,    26,    44,
-      26,    16,    17,    55,    55,    57,    57,    44,    24,    60,
-      61,    62,    63,    64,    65,    66,    67,    68,    69,    70,
-      71,    72,    49,    49,    47,    48,    49,    50,    59,    60,
-      44,     7,     8,     9,    10,    53,    12,    13,    14,    15,
-      16,    17,    59,    60,    59,    60,    57,    74,    74,    54,
-      51,    56,   101,    53,   105,     7,     8,     9,    10,   108,
-      12,    13,    14,    15,    16,    17,   117,   118,   119,    44,
-     148,    45,    52,    55,   152,    54,    63,    55,   129,    56,
-     131,   159,   133,    59,    60,    61,   137,    51,   139,   167,
-      53,    53,    53,    44,    52,   173,    44,    57,   149,    40,
-      20,    20,    54,    52,    61,    52,    52,    59,    60,    52,
-       7,     8,     9,    10,   165,    12,    13,    14,    15,    16,
-      17,     7,     8,     9,    10,    52,    12,    13,    14,    15,
-      16,    17,     7,     8,     9,    10,    24,    12,    13,    14,
-      15,    16,    17,     7,     8,     9,    10,     4,    12,    13,
-      14,    15,    16,    17,    27,    80,    74,    54,    -1,    -1,
-      -1,    -1,    59,    60,    -1,    -1,    -1,    -1,    54,    -1,
-      -1,    -1,    -1,    59,    60,    -1,    -1,    -1,    -1,    54,
-      -1,    -1,    -1,    -1,    59,    60,    -1,    -1,    -1,    -1,
-      54,    -1,    -1,    -1,    -1,    59,    60,     7,     8,     9,
-      10,   124,    12,    13,    14,    15,    16,    17,     7,     8,
-       9,    10,    -1,    12,    13,    14,    15,    16,    17,     7,
-       8,     9,    10,    -1,    12,    13,    14,    15,    16,    17,
-     153,    -1,    -1,   156,    -1,    -1,    15,    -1,    -1,    -1,
-     163,    -1,    -1,    -1,    54,    -1,    -1,   170,    -1,    59,
-      60,    -1,   175,    -1,    15,    -1,    -1,    -1,    -1,    -1,
-      59,    60,    41,    42,    43,    44,    45,    46,    -1,    -1,
-      -1,    59,    60,    15,    53,    -1,    -1,    -1,    -1,    58,
+      30,    21,    20,    20,    22,    22,   165,    37,    38,     1,
+     117,    47,    48,    49,    50,    44,    44,    20,    20,    22,
+      22,    16,    17,    22,    31,    54,   185,    57,    44,    36,
+      37,    23,    44,    63,    52,    52,    66,    67,    68,    69,
+      70,    71,    72,    73,    74,    75,    76,    77,    78,    52,
+      52,    44,   159,    52,    55,    47,    57,    87,   165,    53,
+     147,    79,    79,    58,   171,    60,    61,    57,    55,    54,
+      57,    56,   179,    63,    51,   162,    79,    79,   185,    58,
+      79,    60,    61,   113,    54,    57,    56,   107,   108,   176,
+      14,    15,    16,    17,    52,   182,   126,    53,    45,    64,
+      55,    55,    53,    56,    53,    44,    44,   137,    53,   139,
+     140,     7,     8,     9,    10,   145,    12,    13,    14,    15,
+      16,    17,   152,     7,     8,     9,    10,   157,    12,    13,
+      14,    15,    16,    17,    58,     0,    60,    61,    57,     7,
+       8,     9,    10,   173,    12,    13,    14,    15,    16,    17,
+      52,    40,    62,    20,    52,    62,    51,    53,    20,    24,
+      51,    51,    58,    51,    60,    61,    31,    52,    47,    52,
+      54,    36,    37,    28,    58,    30,    60,    61,    33,    34,
+      35,    36,    37,    38,    39,     1,    54,    87,    -1,    44,
+      58,    -1,    60,    61,     7,     8,     9,    10,    -1,    12,
+      13,    14,    15,    16,    17,     7,     8,     9,    10,    -1,
+      12,    13,    14,    15,    16,    17,     7,     8,     9,    10,
+      -1,    12,    13,    14,    15,    16,    17,     7,     8,     9,
+      10,    -1,    12,    13,    14,    15,    16,    17,    -1,    -1,
+      -1,    54,    -1,    -1,    -1,    58,    -1,    60,    61,    -1,
+      -1,    -1,    54,    -1,    -1,    -1,    58,    -1,    60,    61,
+      -1,    -1,    -1,    54,    -1,    -1,    -1,    58,    -1,    60,
+      61,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    58,    -1,
+      60,    61,     7,     8,     9,    10,    -1,    12,    13,    14,
+      15,    16,    17,     7,     8,     9,    10,    -1,    12,    13,
+      14,    15,    16,    17,     7,     8,     9,    10,    -1,    12,
+      13,    14,    15,    16,    17,     7,     8,     9,    10,    -1,
+      12,    13,    14,    15,    16,    17,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    58,    -1,    60,    61,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    58,    -1,    60,    61,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    58,    -1,    60,    61,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    58,    -1,    60,    61,
+       7,     8,     9,    10,    -1,    12,    13,    14,    15,    16,
+      17,     7,     8,     9,    10,    -1,    12,    13,    14,    15,
+      16,    17,     7,     8,     9,    10,    -1,    12,    13,    14,
+      15,    16,    17,     7,     8,     9,    10,    -1,    12,    13,
+      14,    15,    16,    17,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    58,    -1,    60,    61,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    58,    -1,    60,    61,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    58,    15,    60,    61,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    58,    -1,    60,    61,     7,     8,
+       9,    10,    -1,    12,    13,    14,    15,    16,    17,    15,
       41,    42,    43,    44,    45,    46,    -1,    -1,    -1,    -1,
-      -1,    -1,    53,    -1,    -1,    -1,    -1,    58,    -1,    41,
-      42,    43,    44,    45,    46,    -1,    -1,    -1,    -1,    -1,
-      -1,    53,    28,    -1,    30,    -1,    58,    33,    34,    35,
-      36,    37,    38,    39,    -1,    -1,    -1,    -1,    44,    -1,
-      -1,    28,    -1,    30,    -1,    51,    33,    34,    35,    36,
-      37,    38,    39,    -1,    -1,    -1,    -1,    44,    -1,    -1,
-      28,    -1,    30,    -1,    51,    33,    34,    35,    36,    37,
-      38,    39,    -1,    -1,    -1,    -1,    44,    -1,    -1,    28,
-      -1,    30,    -1,    51,    33,    34,    35,    36,    37,    38,
-      39,    -1,    -1,    -1,    -1,    44,    -1,    -1,    28,    -1,
-      30,    -1,    51,    33,    34,    35,    36,    37,    38,    39,
-      -1,    -1,    -1,    -1,    44,    -1,    -1,    28,    -1,    30,
-      -1,    51,    33,    34,    35,    36,    37,    38,    39,    -1,
-      -1,    -1,    -1,    44
+      -1,    -1,    53,    -1,    -1,    -1,    -1,    -1,    59,    -1,
+      -1,    -1,    -1,    -1,    -1,    41,    42,    43,    44,    45,
+      46,    -1,    -1,    -1,    -1,    -1,    -1,    53,    -1,    58,
+      -1,    60,    61,    59,    28,    -1,    30,    -1,    -1,    33,
+      34,    35,    36,    37,    38,    39,    -1,    -1,    -1,    -1,
+      44,    -1,    -1,    28,    -1,    30,    -1,    51,    33,    34,
+      35,    36,    37,    38,    39,    -1,    -1,    -1,    -1,    44,
+      -1,    -1,    -1,    -1,    -1,    -1,    51
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    36,    37,    65,    89,    90,    91,    92,    93,    44,
-      44,     0,    24,    67,    31,    71,    89,    90,    55,    57,
-      55,    57,    44,    66,    67,    44,    70,    71,    47,    48,
-      49,    50,    77,    15,    41,    42,    43,    44,    45,    46,
-      53,    58,    81,    83,    84,    85,    88,    77,    81,    51,
-      89,    66,    53,    89,    70,    57,    81,    53,    81,    81,
-       7,     8,     9,    10,    12,    13,    14,    15,    16,    17,
-      59,    60,    57,    62,    68,    69,    71,    90,    44,    72,
-      73,    81,    81,    82,    54,    81,    81,    81,    81,    81,
-      81,    81,    81,    81,    81,    81,    81,    81,    45,    69,
-      52,    55,    54,    72,    54,    56,    63,    77,    55,    75,
-      81,    56,    74,    77,    51,    28,    30,    33,    34,    35,
-      38,    39,    44,    76,    78,    79,    86,    87,    90,    53,
-      53,    53,    81,    53,    81,    80,    81,    53,    44,    57,
-      52,    76,    81,    44,    81,    81,    81,    81,    54,    40,
-      54,    54,    54,    51,    78,    81,    51,    78,    76,    20,
-      61,    76,    52,    51,    78,    61,    52,    20,    76,    81,
-      51,    78,    52,    54,    76,    51,    78,    52,    76,    52
+       0,    66,     0,    24,    31,    36,    37,    67,    71,   104,
+     105,   106,   107,    44,    44,    44,    44,    51,    72,    55,
+      57,    55,    57,    68,    53,    47,    48,    49,    50,    79,
+      15,    41,    42,    43,    44,    45,    46,    53,    59,    85,
+      86,    88,    89,    90,   103,    79,    85,    69,    70,    71,
+     104,    74,    57,    43,    44,    45,    46,    53,    86,    88,
+      89,    90,   103,    53,    86,    86,     7,     8,     9,    10,
+      12,    13,    14,    15,    16,    17,    58,    60,    61,    57,
+      63,    70,    52,    44,    54,    75,    85,    53,    86,    86,
+      87,    54,    86,    86,    86,    86,    86,    86,    86,    86,
+      86,    86,    86,    86,    86,    85,    45,    55,    55,    77,
+      87,    54,    54,    56,    64,    79,    79,    73,    54,    86,
+      56,    76,    28,    30,    33,    34,    35,    38,    39,    44,
+      51,    80,    83,    91,    97,   102,   104,    53,    53,    81,
+      82,    84,    86,    98,    44,    57,    78,    80,    86,    44,
+      86,    86,    53,    86,    52,    78,    54,    40,    86,    96,
+      86,    54,    51,    80,   100,    99,    78,    20,    62,   102,
+      52,    93,    94,    62,    20,    80,    51,    86,    92,    95,
+      78,    54,    51,    80,    52,   101,    78,   102,    52
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    64,    65,    65,    66,    66,    67,    68,    68,    69,
-      69,    70,    70,    71,    72,    72,    73,    74,    74,    75,
-      75,    76,    76,    77,    77,    77,    77,    78,    78,    78,
-      78,    78,    78,    78,    78,    78,    78,    79,    80,    80,
-      81,    81,    81,    81,    81,    81,    81,    81,    81,    81,
-      82,    82,    82,    83,    83,    84,    84,    84,    84,    84,
-      85,    85,    85,    86,    86,    86,    86,    86,    86,    87,
-      87,    87,    87,    88,    88,    88,    88,    88,    88,    89,
-      89,    90,    90,    90,    91,    91,    92,    92,    92,    92,
-      93
+       0,    65,    66,    66,    66,    66,    68,    67,    69,    69,
+      70,    70,    72,    73,    71,    74,    74,    75,    76,    76,
+      77,    77,    78,    78,    79,    79,    79,    79,    80,    80,
+      80,    80,    80,    81,    80,    82,    80,    80,    83,    84,
+      84,    85,    85,    85,    85,    85,    85,    85,    85,    85,
+      85,    86,    86,    86,    86,    86,    86,    86,    86,    86,
+      86,    87,    87,    87,    88,    88,    89,    89,    89,    89,
+      89,    89,    90,    90,    90,    91,    91,    92,    91,    93,
+      91,    94,    91,    95,    91,    96,    98,    99,    97,   100,
+     101,    97,   102,   102,   103,   103,   103,   103,   103,   103,
+     104,   104,   104,   105,   105,   106,   106,   106,   106,   107
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     4,     4,     2,     0,     5,     1,     1,     2,
-       0,     2,     0,     9,     2,     0,     4,     1,     0,     0,
-       2,     0,     2,     1,     1,     1,     1,     1,     1,     1,
-       3,     1,     4,     2,     4,     2,     2,     2,     1,     0,
-       1,     3,     4,     1,     1,     1,     1,     1,     1,     1,
-       0,     1,     3,     1,     1,     3,     2,     3,     3,     3,
-       2,     3,     3,     7,     5,    11,     7,     9,     9,     7,
-       5,    12,    10,     3,     3,     3,     3,     3,     3,     2,
-       0,     1,     1,     1,     4,     6,     2,     4,     4,     6,
-       7
+       0,     2,     2,     2,     2,     0,     0,     6,     1,     1,
+       2,     0,     0,     0,     9,     2,     0,     4,     1,     0,
+       0,     2,     0,     2,     1,     1,     1,     1,     1,     1,
+       1,     3,     1,     0,     3,     0,     3,     2,     2,     1,
+       0,     1,     3,     4,     1,     1,     1,     1,     1,     1,
+       1,     1,     3,     4,     1,     1,     1,     1,     1,     1,
+       1,     0,     1,     3,     1,     1,     3,     2,     3,     3,
+       3,     3,     2,     3,     3,     8,     6,     0,    13,     0,
+       9,     0,    11,     0,    11,     0,     0,     0,     7,     0,
+       0,    12,     3,     1,     3,     3,     3,     3,     3,     3,
+       1,     1,     1,     4,     6,     2,     4,     4,     6,     7
 };
 
 
@@ -1472,40 +1877,1286 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 6: /* class: CLASS id '{' declarations_and_functions '}'  */
-#line 82 "hw3.y"
-                {
-                Trace("Reducing to program\n");
+  case 6: /* $@1: %empty  */
+#line 444 "hw3.y"
+                             {
+                        fprintf(output, "class %s {\n", (yyvsp[-1].token)._str);
+                        ClassName = std::string((yyvsp[-1].token)._str);
+                        resetList();
                 }
-#line 1481 "y.tab.c"
+#line 1888 "y.tab.c"
     break;
 
-  case 23: /* type: STRING  */
-#line 122 "hw3.y"
-                {(yyval.valueType) = string_v;}
-#line 1487 "y.tab.c"
+  case 7: /* class: CLASS id '{' $@1 declarations_and_functions '}'  */
+#line 449 "hw3.y"
+                                              {
+                        fprintf(output, "}");
+                }
+#line 1896 "y.tab.c"
     break;
 
-  case 24: /* type: INT  */
-#line 123 "hw3.y"
-                {(yyval.valueType) = int_v;}
-#line 1493 "y.tab.c"
+  case 12: /* $@2: %empty  */
+#line 469 "hw3.y"
+                       {
+                        ENTERSCOPE();
+                }
+#line 1904 "y.tab.c"
     break;
 
-  case 25: /* type: BOOL  */
-#line 124 "hw3.y"
-                {(yyval.valueType) = bool_v;}
-#line 1499 "y.tab.c"
+  case 13: /* @3: %empty  */
+#line 472 "hw3.y"
+                                    {
+						SymbolDesc * sd = new SymbolDesc();	
+						std::vector<int> * varlist2 =(std::vector<int> *)(yyvsp[-2].token)._ptr;
+						SymbolDesc * retype = (SymbolDesc*)(yyvsp[0].token)._ptr; 
+						sd->symtype = SymbolType::sfunction;
+						uDependency dep;
+						dep.retType = (yyvsp[0].token).type;
+						printf("<%d>", dep.retType);
+						sd->symdeps.push_back(dep);
+						SCOPERET.push_back(dep.retType);
+                        fprintf(output, "\tmethod public static ");
+                        fprintf(output, "%s ", SymType2Str((yyvsp[0].token).type));
+                        fprintf(output, "%s", (yyvsp[-5].token)._str);
+                        fprintf(output, "(");
+                        if(strcmp((yyvsp[-5].token)._str, "main") != 0){
+                                // if(varList != NULL){
+                                //         int i = 0;
+                                //         for(i;i<255 && varList[i]!=-1;i++){
+                                //                 if(i!=0){
+                                //                         fprintf(output, ", ");
+                                //                 }
+                                //                 fprintf(output, "%s", SymType2Str(varList[i]));
+                                //         }
+                                // }
+								if(varlist2 != nullptr) {
+									for(int i = 0 , j = varlist2->size() ;  i < j; ++i){
+										dep.argType = (*varlist2)[i];
+										sd->symdeps.push_back(dep);
+										if(i!=0){
+                                            fprintf(output, ", ");
+                                        }
+										fprintf(output, "%s", SymType2Str((*varlist2)[i]));
+									}
+								}
+                                fprintf(output, ")\n");
+                                resetList();
+                        }else{
+                                fprintf(output, "java.lang.String[])\n");  
+                                //fprintf(output, ""); 
+                        }
+						(yyval.token)._ptr = sd;
+                        fprintf(output, "\tmax_stack 15\n\tmax_locals 15\n");
+						delete varlist2,retype;
+						sd->returnByFun = false;
+						insert(std::string((yyvsp[-5].token)._str),*sd,1);	
+						fprintf(output, "\t{\n");
+                }
+#line 1956 "y.tab.c"
     break;
 
-  case 26: /* type: FLOAT  */
-#line 125 "hw3.y"
-                {(yyval.valueType) = real_v;}
-#line 1505 "y.tab.c"
+  case 14: /* function: FUN id $@2 '(' arguments ')' returnType @3 one_or_multiple_line  */
+#line 519 "hw3.y"
+                                      {
+                        if(strcmp((yyvsp[-7].token)._str, "main") == 0){
+                                fprintf(output, "\t\treturn\n");
+                        }
+                        fprintf(output, "\t}\n");
+                        LEAVESCOPE();
+                 }
+#line 1968 "y.tab.c"
+    break;
+
+  case 15: /* arguments: arguments argument  */
+#line 528 "hw3.y"
+                             {
+				//printf("123");
+				SymbolDesc sd;
+				uDependency value;
+                // int i = 0;
+                // for(i;i<255 && varList[i]!=-1;i++){
+                //         printf("%d", varList[i]);
+                // }
+				sd.symtype = Token2Symbol((yyvsp[0].token).type);
+				value.value = (yyvsp[0].token)._ptr;
+                                
+				sd.symdeps.push_back(value);
+				insertArg((yyvsp[0].token)._str, sd);
+				(yyval.token) = (yyvsp[-1].token);
+				//printf("%d", sd.symtype);
+				(yyval.token).type = TokenType::typeList;
+				((std::vector<int>*)(yyval.token)._ptr)->push_back(sd.symtype);
+                //insertList($2.type);
+        }
+#line 1992 "y.tab.c"
+    break;
+
+  case 16: /* arguments: %empty  */
+#line 547 "hw3.y"
+                      {
+				(yyval.token).type = TokenType::typeList;
+				(yyval.token)._ptr = new std::vector<int>();
+			}
+#line 2001 "y.tab.c"
+    break;
+
+  case 17: /* argument: id ':' type seperator  */
+#line 573 "hw3.y"
+                                {
+		//printf("123");
+        (yyval.token) = (yyvsp[-3].token);
+		(yyval.token).type = (yyvsp[-1].token).type;
+}
+#line 2011 "y.tab.c"
+    break;
+
+  case 20: /* returnType: %empty  */
+#line 583 "hw3.y"
+                    {
+        (yyval.token).type = none;
+		(yyval.token)._ptr = nullptr;
+        }
+#line 2020 "y.tab.c"
+    break;
+
+  case 21: /* returnType: ':' type  */
+#line 587 "hw3.y"
+                      {
+                (yyval.token).type = (yyvsp[0].token).type;
+            }
+#line 2028 "y.tab.c"
+    break;
+
+  case 24: /* type: KW_STRING  */
+#line 596 "hw3.y"
+                   {(yyval.token).type = sstring;}
+#line 2034 "y.tab.c"
+    break;
+
+  case 25: /* type: INT  */
+#line 597 "hw3.y"
+                {(yyval.token).type = sinteger;}
+#line 2040 "y.tab.c"
+    break;
+
+  case 26: /* type: BOOL  */
+#line 598 "hw3.y"
+                {(yyval.token).type = sboolean;}
+#line 2046 "y.tab.c"
+    break;
+
+  case 27: /* type: FLOAT  */
+#line 599 "hw3.y"
+                {(yyval.token).type = sreal;}
+#line 2052 "y.tab.c"
+    break;
+
+  case 31: /* statement: id '=' expression  */
+#line 605 "hw3.y"
+                           {
+			SymbolDesc * pSD;
+		if(seize(std::string((yyvsp[-2].token)._str),pSD)){
+			if(pSD->readonly){
+				//Error("Assignment to Readonly Variable!");
+			}
+			else if(pSD->symtype != Token2Symbol((yyvsp[0].token).type)){
+				//Error("Type Unmatch");
+			}
+			else {
+				if(pSD->global){
+					fprintf(output, "putstatic %s %s.%s\n", SymType2JBStr(pSD->symtype).c_str(), ClassName.c_str(), (yyvsp[-2].token)._str);
+				}
+				else{
+					switch(pSD->symtype){
+						case SymbolType::sinteger:
+						fprintf(output, "istore %d\n",  pSD->symindex);
+						break;
+						case SymbolType::sreal:
+						fprintf(output, "fstore  %d\n", pSD->symindex);
+						break;
+						case SymbolType::sstring:
+						fprintf(output, "astore  %d\n", pSD->symindex);
+						break;
+					}
+				}
+			}
+		}
+		}
+#line 2086 "y.tab.c"
+    break;
+
+  case 32: /* statement: return  */
+#line 634 "hw3.y"
+                {
+                fprintf(output, "\t\tireturn\n");
+        }
+#line 2094 "y.tab.c"
+    break;
+
+  case 33: /* $@4: %empty  */
+#line 638 "hw3.y"
+                {
+                fprintf(output, "\t\tgetstatic java.io.PrintStream java.lang.System.out\n");
+        }
+#line 2102 "y.tab.c"
+    break;
+
+  case 34: /* statement: PRINT $@4 expression  */
+#line 640 "hw3.y"
+                    {
+                fprintf(output, "\t\tinvokevirtual void java.io.PrintStream.print(");
+                switch((yyvsp[0].token).type){
+		case vint:
+			fprintf(output, "int");
+			break;
+		case vreal:
+			fprintf(output, "float");
+			break;
+		case vbool:
+			fprintf(output, "boolean");
+			break;
+		case vstring:
+			fprintf(output, "java.lang.String");
+			break;
+		case blank:
+			fprintf(output, "void");
+		default:
+			break;
+		}
+                fprintf(output, ")\n");
+        }
+#line 2129 "y.tab.c"
+    break;
+
+  case 35: /* $@5: %empty  */
+#line 663 "hw3.y"
+                  {
+                fprintf(output, "\t\tgetstatic java.io.PrintStream java.lang.System.out\n");
+        }
+#line 2137 "y.tab.c"
+    break;
+
+  case 36: /* statement: PRINTLN $@5 expression  */
+#line 665 "hw3.y"
+                   {
+                fprintf(output, "\t\tinvokevirtual void java.io.PrintStream.println(");
+                switch((yyvsp[0].token).type){
+		case vint:
+			fprintf(output, "int");
+			break;
+		case vreal:
+			fprintf(output, "float");
+			break;
+		case vbool:
+			fprintf(output, "boolean");
+			break;
+		case vstring:
+			fprintf(output, "java.lang.String");
+			break;
+		case blank:
+			fprintf(output, "void");
+		default:
+			break;
+		}
+                fprintf(output, ")\n");
+        }
+#line 2164 "y.tab.c"
+    break;
+
+  case 41: /* declaration_value: integer_expression  */
+#line 696 "hw3.y"
+                                     {
+					(yyval.token).returnByFun = false;
+				}
+#line 2172 "y.tab.c"
+    break;
+
+  case 42: /* declaration_value: '(' expression ')'  */
+#line 699 "hw3.y"
+                                {
+                (yyval.token) = (yyvsp[-1].token);
+            }
+#line 2180 "y.tab.c"
+    break;
+
+  case 43: /* declaration_value: id '(' expression_list ')'  */
+#line 702 "hw3.y"
+                                        {
+				SymbolDesc * pSD;
+				(yyval.token).returnByFun = true;
+				std::string idName = std::string((yyvsp[-3].token)._str);
+				delete (yyvsp[-3].token)._str;
+
+				if(seize(idName,pSD)){
+					std::vector<int> * list = (std::vector<int>*)(yyvsp[-1].token)._ptr;
+					if(pSD->symtype != SymbolType::sfunction){
+						//Error(id + ": Is not a Function");
+					}
+					else if(!matchArgs(*list,*pSD)){
+						//Error("Argument type Unmatch");
+					}
+					else{
+						fprintf(output, "invokestatic %s %s.%s(", SymType2JBStr(pSD->symdeps[0].retType).c_str(), ClassName.c_str(), idName.c_str());
+						for(int i = 0 ; i < list->size();++i ){
+							fprintf(output, "%s", SymType2JBStr((*list)[i]).c_str());
+							if(i != list->size()-1){
+								fprintf(output, ", ");
+							}
+						}
+						fprintf(output, ")\n");
+
+						(yyval.token).type = Symbol2Token(pSD->symdeps[0].retType);
+						//$$.type = SymbolType::sfunction;
+						delete list;
+					}
+				}
+				else {
+					(yyval.token).type = TokenType::blank;
+				}
+			}
+#line 2218 "y.tab.c"
+    break;
+
+  case 44: /* declaration_value: bool_expresssion  */
+#line 735 "hw3.y"
+                              {
+				(yyval.token).returnByFun = false;
+			}
+#line 2226 "y.tab.c"
+    break;
+
+  case 46: /* declaration_value: id  */
+#line 739 "hw3.y"
+                {
+                SymbolDesc * pSD;
+				(yyval.token).returnByFun = false;
+				if(seize(std::string((yyvsp[0].token)._str),pSD)){
+					(yyval.token).type = Symbol2Token(pSD->symtype);
+					
+					if(pSD->readonly){
+						switch(pSD->symtype){
+							case SymbolType::sinteger:
+							fprintf(output, "sipush %d\n", pSD->symdeps[0]._int);
+							(yyval.token).type = TokenType::vint;
+							break;
+							case SymbolType::sboolean:
+							if(pSD->symdeps[0]._bool){
+								fprintf(output, "iconst_1\n");
+							}
+							else {
+								fprintf(output, "iconst_0\n");
+							}
+							(yyval.token).type = TokenType::vbool;
+							break;
+							case SymbolType::sstring:
+							fprintf(output, "ldc %s\n", pSD->symdeps[0]._str);
+							(yyval.token).type = TokenType::vstring;
+							break;
+							case SymbolType::sreal:
+							fprintf(output, "ldc %sf\n", pSD->symdeps[0]._real);
+							break;
+							default:
+							break;
+
+						}
+					}
+					else {
+						//If ID is a Variable.
+						if(pSD->global){
+							//If ID is global variable.
+							fprintf(output, "getstatic");
+							switch(pSD->symtype){
+								case SymbolType::sinteger:
+								fprintf(output, " int ");
+								(yyval.token).type = TokenType::vint;
+								break;
+								case SymbolType::sreal:
+								fprintf(output, " float ");
+								(yyval.token).type = TokenType::vreal;
+								break;
+								case SymbolType::sstring:
+								fprintf(output, " java.lang.String ");
+								(yyval.token).type = TokenType::vstring;
+								break;
+								/*case SymbolType::boolean:
+								jbfile << " boolean ";
+								$$.type = TokenType::vbool;
+								break;
+								case SymbolType::array:
+								jbfile << " array ";
+								$$.type = TokenType::varray;
+								break;*/
+								default:
+								break;
+							}
+							fprintf(output, "%s.%s\n", ClassName.c_str(), (yyvsp[0].token)._str);
+						}
+						else{
+							//If ID is local variable.
+							switch(pSD->symtype){
+								case SymbolType::sinteger:
+								fprintf(output, "iload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vint;
+								break;
+								case SymbolType::sreal:
+								fprintf(output, "fload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vreal;
+								break;
+								case SymbolType::sstring:
+								fprintf(output, "aload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vstring;
+								break;
+								/*case SymbolType::boolean:
+								jbfile << "cload " << <<endl;
+								break;
+								case SymbolType::std::string:
+								jbfile << "sload " << <<endl;
+								break;
+								case SymbolType::array:
+								jbfile << "aload " << <<endl;
+								break;*/
+								default:
+								break;
+							}
+						}
+					}
+				}
+				else {
+				}
+				delete (yyvsp[0].token)._str;
+            }
+#line 2329 "y.tab.c"
+    break;
+
+  case 47: /* declaration_value: integer  */
+#line 837 "hw3.y"
+                      {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vint;
+				(yyval.token).returnByFun = false;
+                //fprintf(output, "sipush %d\n", $1._int);
+            }
+#line 2340 "y.tab.c"
+    break;
+
+  case 48: /* declaration_value: str  */
+#line 843 "hw3.y"
+                  {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vstring;
+				(yyval.token).returnByFun = false;
+                //fprintf(output, "\t\tldc %s\n", $1._str);
+            }
+#line 2351 "y.tab.c"
+    break;
+
+  case 49: /* declaration_value: boolean  */
+#line 849 "hw3.y"
+                      {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vbool;
+				(yyval.token).returnByFun = false;
+                //fprintf(output, "ldc %s\n", $1);
+            }
+#line 2362 "y.tab.c"
+    break;
+
+  case 50: /* declaration_value: real  */
+#line 855 "hw3.y"
+                   {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vreal;
+				(yyval.token).returnByFun = false;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                //fprintf(output, "ldc %s\n", $1);
+            }
+#line 2373 "y.tab.c"
+    break;
+
+  case 51: /* expression: integer_expression  */
+#line 864 "hw3.y"
+                              {
+				(yyval.token).returnByFun = false;
+			}
+#line 2381 "y.tab.c"
+    break;
+
+  case 52: /* expression: '(' expression ')'  */
+#line 867 "hw3.y"
+                                {
+                (yyval.token) = (yyvsp[-1].token);
+            }
+#line 2389 "y.tab.c"
+    break;
+
+  case 53: /* expression: id '(' expression_list ')'  */
+#line 870 "hw3.y"
+                                        {
+				SymbolDesc * pSD;
+		std::string idName = std::string((yyvsp[-3].token)._str);
+		delete (yyvsp[-3].token)._str;
+
+		if(seize(idName,pSD)){
+			std::vector<int> * list = (std::vector<int>*)(yyvsp[-1].token)._ptr;
+			if(pSD->symtype != SymbolType::sfunction){
+				//Error(id + ": Is not a Function");
+			}
+			else if(!matchArgs(*list,*pSD)){
+				//Error("Argument type Unmatch");
+			}
+			else{
+				printf("%d", pSD->symdeps[0].retType);
+				fprintf(output, "invokestatic %s %s.%s(", SymType2JBStr(pSD->symdeps[0].retType).c_str(), ClassName.c_str(), idName.c_str());
+				for(int i = 0 ; i < list->size();++i ){
+					fprintf(output, "%s", SymType2JBStr((*list)[i]).c_str());
+					if(i != list->size()-1){
+						fprintf(output, ", ");
+					}
+				}
+				fprintf(output, ")\n");
+
+				(yyval.token).type = Symbol2Token(pSD->symdeps[0].retType);
+				(yyval.token).returnByFun = true;
+				//$$.type = SymbolType::sfunction;
+				delete list;
+			}
+		}
+		else {
+			(yyval.token).type = TokenType::blank;
+		}
+			}
+#line 2428 "y.tab.c"
+    break;
+
+  case 54: /* expression: bool_expresssion  */
+#line 904 "hw3.y"
+                              {
+				(yyval.token).returnByFun = false;
+			}
+#line 2436 "y.tab.c"
+    break;
+
+  case 55: /* expression: comparison  */
+#line 907 "hw3.y"
+                        {
+				(yyval.token).returnByFun = false;
+			}
+#line 2444 "y.tab.c"
+    break;
+
+  case 56: /* expression: id  */
+#line 910 "hw3.y"
+                {
+                SymbolDesc * pSD;
+				(yyval.token).returnByFun = false;
+				if(seize(std::string((yyvsp[0].token)._str),pSD)){
+					(yyval.token).type = Symbol2Token(pSD->symtype);
+					if(pSD->readonly){
+						switch(pSD->symtype){
+							case SymbolType::sinteger:
+							fprintf(output, "sipush %d\n", pSD->symdeps[0]._int);
+							(yyval.token).type = TokenType::vint;
+							break;
+							case SymbolType::sboolean:
+							if(pSD->symdeps[0]._bool){
+								fprintf(output, "iconst_1\n");
+							}
+							else {
+								fprintf(output, "iconst_0\n");
+							}
+							(yyval.token).type = TokenType::vbool;
+							break;
+							case SymbolType::sstring:
+							fprintf(output, "ldc %s\n", pSD->symdeps[0]._str);
+							(yyval.token).type = TokenType::vstring;
+							break;
+							case SymbolType::sreal:
+							fprintf(output, "ldc %sf\n", pSD->symdeps[0]._real);
+							break;
+							default:
+							break;
+
+						}
+					}
+					else {
+						//If ID is a Variable.
+						if(pSD->global){
+							//If ID is global variable.
+							fprintf(output, "getstatic");
+							switch(pSD->symtype){
+								case SymbolType::sinteger:
+								fprintf(output, " int ");
+								(yyval.token).type = TokenType::vint;
+								break;
+								case SymbolType::sreal:
+								fprintf(output, " float ");
+								(yyval.token).type = TokenType::vreal;
+								break;
+								case SymbolType::sstring:
+								fprintf(output, " java.lang.String ");
+								(yyval.token).type = TokenType::vstring;
+								break;
+								/*case SymbolType::boolean:
+								jbfile << " boolean ";
+								$$.type = TokenType::vbool;
+								break;
+								case SymbolType::array:
+								jbfile << " array ";
+								$$.type = TokenType::varray;
+								break;*/
+								default:
+								break;
+							}
+							fprintf(output, "%s.%s\n", ClassName.c_str(), (yyvsp[0].token)._str);
+						}
+						else{
+							//If ID is local variable.
+							switch(pSD->symtype){
+								case SymbolType::sinteger:
+								fprintf(output, "iload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vint;
+								break;
+								case SymbolType::sreal:
+								fprintf(output, "fload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vreal;
+								break;
+								case SymbolType::sstring:
+								fprintf(output, "aload %d\n", pSD->symindex);
+								(yyval.token).type = TokenType::vstring;
+								break;
+								/*case SymbolType::boolean:
+								jbfile << "cload " << <<endl;
+								break;
+								case SymbolType::std::string:
+								jbfile << "sload " << <<endl;
+								break;
+								case SymbolType::array:
+								jbfile << "aload " << <<endl;
+								break;*/
+								default:
+								break;
+							}
+						}
+					}
+				}
+				else {
+				}
+				delete (yyvsp[0].token)._str;
+            }
+#line 2546 "y.tab.c"
+    break;
+
+  case 57: /* expression: integer  */
+#line 1007 "hw3.y"
+                      {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vint;
+				(yyval.token).returnByFun = false;
+                fprintf(output, "sipush %d\n", (yyvsp[0].token)._int);
+            }
+#line 2557 "y.tab.c"
+    break;
+
+  case 58: /* expression: str  */
+#line 1013 "hw3.y"
+                  {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vstring;
+				(yyval.token).returnByFun = false;
+                fprintf(output, "\t\tldc %s\n", (yyvsp[0].token)._str);
+            }
+#line 2568 "y.tab.c"
+    break;
+
+  case 59: /* expression: boolean  */
+#line 1019 "hw3.y"
+                      {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vbool;
+				(yyval.token).returnByFun = false;
+                //fprintf(output, "ldc %s\n", $1);
+            }
+#line 2579 "y.tab.c"
+    break;
+
+  case 60: /* expression: real  */
+#line 1025 "hw3.y"
+                   {
+                (yyval.token) = (yyvsp[0].token);
+                (yyval.token).type = vreal;
+				(yyval.token).returnByFun = false;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                //fprintf(output, "ldc %s\n", $1);
+            }
+#line 2590 "y.tab.c"
+    break;
+
+  case 61: /* expression_list: %empty  */
+#line 1033 "hw3.y"
+                 {
+					(yyval.token).type = TokenType::typeList;
+					(yyval.token)._ptr = new std::vector<int>();
+				}
+#line 2599 "y.tab.c"
+    break;
+
+  case 62: /* expression_list: expression  */
+#line 1037 "hw3.y"
+                           {
+					(yyval.token).type = TokenType::typeList;
+					std::vector<int> & list = *(new std::vector<int>());
+					list.push_back(Token2Symbol((yyvsp[0].token).type));
+					(yyval.token)._ptr = &list;
+				}
+#line 2610 "y.tab.c"
+    break;
+
+  case 63: /* expression_list: expression_list ',' expression  */
+#line 1043 "hw3.y"
+                                                               {
+					(yyval.token) = (yyvsp[-2].token);
+					std::vector<int> & list = *(std::vector<int>*)(yyval.token)._ptr;
+					list.push_back(Token2Symbol((yyvsp[0].token).type));
+				}
+#line 2620 "y.tab.c"
+    break;
+
+  case 64: /* boolean: TRUE  */
+#line 1050 "hw3.y"
+                { (yyval.token)._bool = 1; }
+#line 2626 "y.tab.c"
+    break;
+
+  case 65: /* boolean: FALSE  */
+#line 1051 "hw3.y"
+                { (yyval.token)._bool = 0; }
+#line 2632 "y.tab.c"
+    break;
+
+  case 66: /* integer_expression: expression '+' expression  */
+#line 1054 "hw3.y"
+                                             {
+						(yyval.token)._int = (yyvsp[-2].token)._int + (yyvsp[0].token)._int;
+						(yyval.token).type = vint;
+						fprintf(output, "\t\tiadd\n"); 
+                    }
+#line 2642 "y.tab.c"
+    break;
+
+  case 67: /* integer_expression: '-' expression  */
+#line 1059 "hw3.y"
+                                                   {
+						(yyval.token)._int = -(yyvsp[0].token)._int;
+                        (yyval.token).type = TokenType::vint;
+						fprintf(output, "ineg\n");
+                    }
+#line 2652 "y.tab.c"
+    break;
+
+  case 68: /* integer_expression: expression '-' expression  */
+#line 1064 "hw3.y"
+                                               {
+						(yyval.token)._int = (yyvsp[-2].token)._int - (yyvsp[0].token)._int;
+						(yyval.token).type = TokenType::vint;
+						fprintf(output, "isub\n");
+		   			}
+#line 2662 "y.tab.c"
+    break;
+
+  case 69: /* integer_expression: expression '*' expression  */
+#line 1069 "hw3.y"
+                                               {
+						(yyval.token).type = TokenType::vint;
+						(yyval.token)._int = (yyvsp[-2].token)._int * (yyvsp[0].token)._int;
+						fprintf(output, "imul\n");
+					}
+#line 2672 "y.tab.c"
+    break;
+
+  case 70: /* integer_expression: expression '/' expression  */
+#line 1074 "hw3.y"
+                                               {
+						(yyval.token)._int = (yyvsp[-2].token)._int / (yyvsp[0].token)._int;
+						(yyval.token).type = TokenType::vint;
+						fprintf(output, "idiv\n");
+					}
+#line 2682 "y.tab.c"
+    break;
+
+  case 71: /* integer_expression: expression '%' expression  */
+#line 1079 "hw3.y"
+                                               {
+						(yyval.token)._int = (yyvsp[-2].token)._int % (yyvsp[0].token)._int;
+						(yyval.token).type = TokenType::vint;
+						fprintf(output, "irem\n");
+					}
+#line 2692 "y.tab.c"
+    break;
+
+  case 72: /* bool_expresssion: '!' expression  */
+#line 1086 "hw3.y"
+                                 {
+                        (yyval.token).type = TokenType::vbool;
+                        fprintf(output, "ixor\n");
+                }
+#line 2701 "y.tab.c"
+    break;
+
+  case 73: /* bool_expresssion: expression '&' expression  */
+#line 1090 "hw3.y"
+                                           {
+                        (yyval.token).type = TokenType::vbool;
+                        fprintf(output, "iand\n");
+                }
+#line 2710 "y.tab.c"
+    break;
+
+  case 74: /* bool_expresssion: expression '|' expression  */
+#line 1094 "hw3.y"
+                                           {
+                        (yyval.token).type = TokenType::vbool;
+                        fprintf(output, "ior\n");
+                }
+#line 2719 "y.tab.c"
+    break;
+
+  case 75: /* condition: IF '(' expression ')' IF_PREACT '{' statements '}'  */
+#line 1100 "hw3.y"
+                                                                                     {	
+			if((yyvsp[-5].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-3].token)._int-1);
+		}
+#line 2730 "y.tab.c"
+    break;
+
+  case 76: /* condition: IF '(' expression ')' IF_PREACT statement  */
+#line 1106 "hw3.y"
+                                                                            {	
+			if((yyvsp[-3].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-1].token)._int-1);
+		}
+#line 2741 "y.tab.c"
+    break;
+
+  case 77: /* $@6: %empty  */
+#line 1112 "hw3.y"
+                                                                    {
+			fprintf(output, "goto L%d\n", (yyvsp[-4].token)._int);
+			fprintf(output, "L%d:\n", (yyvsp[-4].token)._int - 1);
+		}
+#line 2750 "y.tab.c"
+    break;
+
+  case 78: /* condition: IF '(' expression ')' IF_PREACT '{' statements '}' ELSE $@6 '{' statements '}'  */
+#line 1116 "hw3.y"
+                                    {	
+			if((yyvsp[-10].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-8].token)._int);
+		}
+#line 2761 "y.tab.c"
+    break;
+
+  case 79: /* $@7: %empty  */
+#line 1122 "hw3.y"
+                                                          {
+			fprintf(output, "goto L%d\n", (yyvsp[-2].token)._int);
+			fprintf(output, "L%d:\n", (yyvsp[-2].token)._int - 1);
+		}
+#line 2770 "y.tab.c"
+    break;
+
+  case 80: /* condition: IF '(' expression ')' IF_PREACT statement ELSE $@7 statement  */
+#line 1126 "hw3.y"
+                    {	
+			if((yyvsp[-6].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-4].token)._int);
+		}
+#line 2781 "y.tab.c"
+    break;
+
+  case 81: /* $@8: %empty  */
+#line 1132 "hw3.y"
+                                                          {
+			fprintf(output, "goto L%d\n", (yyvsp[-2].token)._int);
+			fprintf(output, "L%d:\n", (yyvsp[-2].token)._int - 1);
+		}
+#line 2790 "y.tab.c"
+    break;
+
+  case 82: /* condition: IF '(' expression ')' IF_PREACT statement ELSE $@8 '{' statements '}'  */
+#line 1136 "hw3.y"
+                             {	
+			if((yyvsp[-8].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-6].token)._int);
+		}
+#line 2801 "y.tab.c"
+    break;
+
+  case 83: /* $@9: %empty  */
+#line 1142 "hw3.y"
+                                                                   {
+			fprintf(output, "goto L%d\n", (yyvsp[-4].token)._int);
+			fprintf(output, "L%d:\n", (yyvsp[-4].token)._int - 1);
+		}
+#line 2810 "y.tab.c"
+    break;
+
+  case 84: /* condition: IF '(' expression ')' IF_PREACT '{' statements '}' ELSE $@9 statement  */
+#line 1146 "hw3.y"
+                     {	
+			if((yyvsp[-8].token).type != TokenType::vbool){
+				//Error("Expression must be boolean");
+			}
+			fprintf(output, "L%d:\n", (yyvsp[-6].token)._int);
+		}
+#line 2821 "y.tab.c"
+    break;
+
+  case 85: /* IF_PREACT: %empty  */
+#line 1155 "hw3.y"
+           {
+		fprintf(output, "ifeq L%d\n", LabelIndex++);
+		(yyval.token)._int = LabelIndex++;
+		printf("%d", LabelIndex);
+	}
+#line 2831 "y.tab.c"
+    break;
+
+  case 86: /* @10: %empty  */
+#line 1162 "hw3.y"
+            {
+		fprintf(output, "L%d:\n", LabelIndex++);
+		(yyval.token)._int = LabelIndex++;
+	}
+#line 2840 "y.tab.c"
+    break;
+
+  case 87: /* $@11: %empty  */
+#line 1166 "hw3.y"
+                          {
+		 if((yyvsp[-1].token).type != TokenType::vbool){
+			//Error("Expression must be boolean");
+		}
+		fprintf(output, "ifeq L%d\n", (yyvsp[-3].token)._int);
+		}
+#line 2851 "y.tab.c"
+    break;
+
+  case 88: /* loop: WHILE @10 '(' expression ')' $@11 one_or_multiple_line  */
+#line 1172 "hw3.y"
+                                     { 
+		
+		fprintf(output, "goto L%d\n", (yyvsp[-5].token)._int - 1);
+		fprintf(output, "L%d:\n", (yyvsp[-5].token)._int);
+		
+		//Trail("While Stmt"); 
+	}
+#line 2863 "y.tab.c"
+    break;
+
+  case 89: /* @12: %empty  */
+#line 1180 "hw3.y"
+                               {
+			SymbolDesc sd;
+			uDependency value;
+
+			sd.symtype = Token2Symbol((yyvsp[0].token).type);
+			sd.iValue = (yyvsp[0].token)._int;
+			value.value = (yyvsp[0].token)._ptr;
+							
+			sd.symdeps.push_back(value);
+			sd.returnByFun = false;
+			insert(std::string((yyvsp[-2].token)._str),sd);
+			fprintf(output, "L%d:\n", LabelIndex++);
+			(yyval.token)._int = LabelIndex++;
+			fprintf(output, "iload %d\n", sd.symindex);
+		}
+#line 2883 "y.tab.c"
+    break;
+
+  case 90: /* $@13: %empty  */
+#line 1195 "hw3.y"
+                                       {
+			std::string L1 = "L" + std::to_string(LabelIndex++);
+			std::string L2 = "L" + std::to_string(LabelIndex++);
+			fprintf(output, "isub\n");
+			fprintf(output, "ifle %s\n", L1.c_str());
+			fprintf(output, "iconst_0\n");
+			fprintf(output, "goto %s\n", L2.c_str());
+			fprintf(output, "%s:\n", L1.c_str());
+			fprintf(output, "iconst_1\n");
+			fprintf(output, "%s:\n", L2.c_str());
+			fprintf(output, "ifeq L%d\n", (yyvsp[-4].token)._int);
+		}
+#line 2900 "y.tab.c"
+    break;
+
+  case 91: /* loop: FOR '(' id IN expression @12 '.' '.' expression ')' $@13 one_or_multiple_line  */
+#line 1207 "hw3.y"
+                                     { 
+			SymbolDesc * pSD;
+			if(seize(std::string((yyvsp[-9].token)._str),pSD)){
+				fprintf(output, "iload %d\n", pSD->symindex);
+				fprintf(output, "sipush 1\n");
+				fprintf(output, "iadd\n");
+				fprintf(output, "istore %d\n", pSD->symindex);
+				fprintf(output, "goto L%d\n", (yyvsp[-6].token)._int - 1);
+				fprintf(output, "L%d:\n", (yyvsp[-6].token)._int);
+				
+			}
+			//Trail("While Stmt"); 
+		}
+#line 2918 "y.tab.c"
+    break;
+
+  case 94: /* comparison: expression '<' expression  */
+#line 1227 "hw3.y"
+                                     {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "iflt %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 2935 "y.tab.c"
+    break;
+
+  case 95: /* comparison: expression LE expression  */
+#line 1239 "hw3.y"
+                                      {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "ifle %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 2952 "y.tab.c"
+    break;
+
+  case 96: /* comparison: expression EQ expression  */
+#line 1251 "hw3.y"
+                                      {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "ifeq %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 2969 "y.tab.c"
+    break;
+
+  case 97: /* comparison: expression '>' expression  */
+#line 1263 "hw3.y"
+                                       {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "ifgt %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 2986 "y.tab.c"
+    break;
+
+  case 98: /* comparison: expression GE expression  */
+#line 1275 "hw3.y"
+                                      {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "ifge %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 3003 "y.tab.c"
+    break;
+
+  case 99: /* comparison: expression NE expression  */
+#line 1287 "hw3.y"
+                                      {
+				(yyval.token).type = TokenType::vbool;
+				std::string L1 = "L" + std::to_string(LabelIndex++);
+				std::string L2 = "L" + std::to_string(LabelIndex++);
+				fprintf(output, "isub\n");
+				fprintf(output, "ifne %s\n", L1.c_str());
+				fprintf(output, "iconst_0\n");
+				fprintf(output, "goto %s\n", L2.c_str());
+				fprintf(output, "%s:\n", L1.c_str());
+				fprintf(output, "iconst_1\n");
+				fprintf(output, "%s:\n", L2.c_str());
+			}
+#line 3020 "y.tab.c"
+    break;
+
+  case 103: /* constant_declaration: VAL id '=' declaration_value  */
+#line 1310 "hw3.y"
+                                                  {
+                                char * name = (yyvsp[-2].token)._str;
+				SymbolDesc sd;
+				uDependency value;
+
+				sd.symtype = Token2Symbol((yyvsp[0].token).type);
+				sd.readonly = true;
+                                sd.hasValue = true;
+                                if((yyvsp[0].token).type == vint){
+                                        sd.iValue = (yyvsp[0].token)._int;
+                                }else if((yyvsp[0].token).type == vbool){
+                                        sd.bValue = (yyvsp[0].token)._bool;
+                                }else if((yyvsp[0].token).type == vstring){
+                                        sd.sValue = (yyvsp[0].token)._str;
+                                }else if((yyvsp[0].token).type == vbool){
+                                        sd.iValue = (yyvsp[0].token)._int;
+                                }
+				value.value = (yyvsp[0].token)._ptr;
+                sd.returnByFun = (yyvsp[0].token).returnByFun;
+				sd.symdeps.push_back(value);
+				insert(std::string(name),sd);
+				delete name;
+                        }
+#line 3048 "y.tab.c"
+    break;
+
+  case 104: /* constant_declaration: VAL id ':' type '=' declaration_value  */
+#line 1333 "hw3.y"
+                                                            {
+                                char * name = (yyvsp[-4].token)._str;
+				SymbolDesc sd;
+				uDependency value;
+
+				sd.symtype = Token2Symbol((yyvsp[-2].token).type);
+				sd.readonly = true;
+                                sd.hasValue = true;
+                                if((yyvsp[-2].token).type == vint){
+                                        sd.iValue = (yyvsp[0].token)._int;
+                                }else if((yyvsp[-2].token).type == vbool){
+                                        sd.bValue = (yyvsp[0].token)._bool;
+                                }else if((yyvsp[-2].token).type == vstring){
+                                        sd.sValue = (yyvsp[0].token)._str;
+                                }else if((yyvsp[-2].token).type == vbool){
+                                        sd.iValue = (yyvsp[0].token)._int;
+                                }
+				value.value = (yyvsp[0].token)._ptr;
+                sd.returnByFun = (yyvsp[0].token).returnByFun;
+				sd.symdeps.push_back(value);
+
+				insert(std::string(name),sd);
+				delete name;
+                        }
+#line 3077 "y.tab.c"
+    break;
+
+  case 105: /* variable_declaration: VAR id  */
+#line 1359 "hw3.y"
+                            { 
+			char * name = (yyvsp[0].token)._str;
+			SymbolDesc sd;
+                        sd.symtype = sinteger;
+						sd.returnByFun = false;
+			insert(std::string(name),sd);
+			delete name;
+		    }
+#line 3090 "y.tab.c"
+    break;
+
+  case 106: /* variable_declaration: VAR id ':' type  */
+#line 1367 "hw3.y"
+                                     { 
+			std::string name((yyvsp[-2].token)._str);
+			SymbolDesc sd;
+                        sd.symtype = Token2Symbol((yyvsp[0].token).type);
+						sd.returnByFun = false;
+			insert(std::string(name),sd);
+
+                        //printf("%s %s", name.c_str(), $2._str);
+		    }
+#line 3104 "y.tab.c"
+    break;
+
+  case 107: /* variable_declaration: VAR id '=' declaration_value  */
+#line 1376 "hw3.y"
+                                                  { 
+			char * name = (yyvsp[-2].token)._str;
+			SymbolDesc sd;
+			uDependency value;
+                        sd.symtype = Token2Symbol((yyvsp[0].token).type);
+                        sd.hasValue = true;
+                        if((yyvsp[0].token).type == vint){
+                                sd.iValue = (yyvsp[0].token)._int;
+                        }else if((yyvsp[0].token).type == vbool){
+                                sd.bValue = (yyvsp[0].token)._bool;
+                        }else if((yyvsp[0].token).type == vstring){
+                                sd.sValue = (yyvsp[0].token)._str;
+                        }else if((yyvsp[0].token).type == vbool){
+                                sd.iValue = (yyvsp[0].token)._int;
+                        }
+			value.value = (yyvsp[0].token)._ptr;
+			sd.returnByFun = (yyvsp[0].token).returnByFun;
+                        sd.symdeps.push_back(value);
+			insert(std::string(name),sd);
+			delete name;
+		    }
+#line 3130 "y.tab.c"
+    break;
+
+  case 108: /* variable_declaration: VAR id ':' type '=' declaration_value  */
+#line 1397 "hw3.y"
+                                                           { 
+			char * name = (yyvsp[-4].token)._str;
+			SymbolDesc sd;
+			uDependency value;
+                        sd.symtype = Token2Symbol((yyvsp[-2].token).type);
+                        sd.hasValue = true;
+                        if((yyvsp[-2].token).type == vint){
+                                sd.iValue = (yyvsp[0].token)._int;
+                        }else if((yyvsp[-2].token).type == vbool){
+                                sd.bValue = (yyvsp[0].token)._bool;
+                        }else if((yyvsp[-2].token).type == vstring){
+                                sd.sValue = (yyvsp[0].token)._str;
+                        }else if((yyvsp[-2].token).type == vbool){
+                                sd.iValue = (yyvsp[0].token)._int;
+                        }
+			value.value = (yyvsp[0].token)._ptr;
+			sd.returnByFun = (yyvsp[0].token).returnByFun;
+                        sd.symdeps.push_back(value);
+			insert(std::string(name),sd);
+			delete name;
+		    }
+#line 3156 "y.tab.c"
     break;
 
 
-#line 1509 "y.tab.c"
+#line 3160 "y.tab.c"
 
       default: break;
     }
@@ -1698,7 +3349,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 230 "hw3.y"
+#line 1429 "hw3.y"
 
 
 
@@ -1714,3 +3365,24 @@ yyreturnlab:
         yyerror("Parsing error !");    
 }
 */
+void yyerror(char *msg)
+{
+    fprintf(stderr, "%s\n", msg);
+}
+int main(int argc, char **argv)
+{
+    /* open the source program file */
+    if (argc != 2)
+    {
+        printf("Usage: sc filename\n");
+        exit(1);
+    }
+    yyin = fopen(argv[1], "r"); /* open input file */
+
+    output = fopen("output.jasm", "w");
+    InitialTableStack();
+    /* perform parsing */
+    if (yyparse() == 1)             /* parsing */
+        yyerror("Parsing error !"); /* syntax error */
+    fclose(output);
+}

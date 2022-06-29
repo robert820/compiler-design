@@ -3,12 +3,13 @@
 #define token(t) {LIST; printf("<%s>\n",#t);}
 #define tokenInteger(t,i) {LIST; printf("<%s:%s>\n",#t,i); return t;}
 #define tokenReal(t, r)	{LIST; printf("<%s:%s>\n", #t, r); return t;}
-#define tokenString(t,s) {LIST; printf("<%s:%s>\n",#t,s); return t;}
+#define tokenString(t,s) {LIST; printf("<%s:%s>\n",#t,s);}
 
 #define MAX_LINE_LENG 256
 
 
 #include "SymbolTable.h"
+#include "token.h"
 #include "y.tab.h"
 
 int linenum = 1;
@@ -278,7 +279,7 @@ boolean true|false
 
 "string"	{
 		token(STRING);
-		return(STRING);
+		return(KW_STRING);
 		}
 
 "true"	{
@@ -312,15 +313,20 @@ boolean true|false
 	}
 
 {identifier}	{
+		yylval.token._str = strdup(yytext);
 		tokenString(id, yytext);
+		return(id);
 		insert(symbolTable, yytext);
 		}
 
 {string}	{
+		yylval.token._str = strdup(yytext);
 		tokenString(string, yytext);
+		return(str);
 		}
 
 {integer}	{
+		yylval.token._int = atoi(yytext);
 		tokenInteger(integer, yytext);
 		}
 
