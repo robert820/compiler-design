@@ -17,7 +17,8 @@ class example {
   // main statements
   fun main() {
     c = add(a, 10)
-    if (c > 10)
+	var d = false
+    if (!d)
       print -c
     else
       print c

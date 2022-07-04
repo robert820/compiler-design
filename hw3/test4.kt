@@ -6,9 +6,9 @@ class test4
 	fun sub (a: int, b: int) : int {
 		return a-b
 	}
-  fun main () {
     var a = (add(5, 10))
-	val b = 5
+	var b = 10 % 5
+  fun main () {
 	println(a)
 	println(b)
   }

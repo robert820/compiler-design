@@ -4,7 +4,7 @@
 
 class example {
   // constants
-  val a = 0
+  val a = 5
 
   // variables
   var c : int
@@ -17,7 +17,8 @@ class example {
   // main statements
   fun main() {
     c = add(a, 10)
-    if (c > 10)
+	var d = true
+    if (!d)
       print -c
     else
       print c

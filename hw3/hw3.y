@@ -1085,6 +1085,7 @@ integer_expression: expression '+' expression{
 
 bool_expresssion:  '!' expression{
                         $$.type = TokenType::vbool;
+						fprintf(output, "iconst_1\n");
                         fprintf(output, "ixor\n");
                 }
                 | expression '&' expression{
@@ -1097,53 +1098,27 @@ bool_expresssion:  '!' expression{
                 }
                 ;
 
-condition: IF '(' expression ')' IF_PREACT '{' statements '}' %prec LOWER_THAN_ELSE  {	
+condition: IF '(' expression ')' IF_PREACT one_or_multiple_line %prec LOWER_THAN_ELSE  {	
 			if($3.type != TokenType::vbool){
 				//Error("Expression must be boolean");
 			}
 			fprintf(output, "L%d:\n", $<token>5._int-1);
 		}
-         | IF '(' expression ')' IF_PREACT statement %prec LOWER_THAN_ELSE  {	
-			if($3.type != TokenType::vbool){
-				//Error("Expression must be boolean");
-			}
-			fprintf(output, "L%d:\n", $<token>5._int-1);
-		}
-         | IF '(' expression ')' IF_PREACT '{' statements '}' ELSE  {
+         | IF '(' expression ')' IF_PREACT one_or_multiple_line ELSE  {
 			fprintf(output, "goto L%d\n", $<token>5._int);
 			fprintf(output, "L%d:\n", $<token>5._int - 1);
 		} 
-		'{' statements '}'  {	
+		one_or_multiple_line  {	
 			if($3.type != TokenType::vbool){
 				//Error("Expression must be boolean");
 			}
 			fprintf(output, "L%d:\n", $<token>5._int);
 		}
-         | IF '(' expression ')' IF_PREACT statement ELSE {
-			fprintf(output, "goto L%d\n", $<token>5._int);
-			fprintf(output, "L%d:\n", $<token>5._int - 1);
-		}  
-	statement   {	
-			if($3.type != TokenType::vbool){
-				//Error("Expression must be boolean");
-			}
-			fprintf(output, "L%d:\n", $<token>5._int);
-		}
-         | IF '(' expression ')' IF_PREACT statement ELSE {
+         | IF '(' expression ')' IF_PREACT one_or_multiple_line ELSE {
 			fprintf(output, "goto L%d\n", $<token>5._int);
 			fprintf(output, "L%d:\n", $<token>5._int - 1);
 		} 
-	 '{' statements '}'  {	
-			if($3.type != TokenType::vbool){
-				//Error("Expression must be boolean");
-			}
-			fprintf(output, "L%d:\n", $<token>5._int);
-		}
-         | IF '(' expression ')' IF_PREACT '{' statements '}' ELSE {
-			fprintf(output, "goto L%d\n", $<token>5._int);
-			fprintf(output, "L%d:\n", $<token>5._int - 1);
-		} 
-	 statement   {	
+		one_or_multiple_line  {	
 			if($3.type != TokenType::vbool){
 				//Error("Expression must be boolean");
 			}
@@ -1308,52 +1283,52 @@ declaration: constant_declaration
             ;
 
 constant_declaration: VAL id '=' declaration_value{
-                                char * name = $2._str;
-				SymbolDesc sd;
-				uDependency value;
+						char * name = $2._str;
+						SymbolDesc sd;
+						uDependency value;
 
-				sd.symtype = Token2Symbol($4.type);
-				sd.readonly = true;
-                                sd.hasValue = true;
-                                if($4.type == vint){
-                                        sd.iValue = $4._int;
-                                }else if($4.type == vbool){
-                                        sd.bValue = $4._bool;
-                                }else if($4.type == vstring){
-                                        sd.sValue = $4._str;
-                                }else if($4.type == vbool){
-                                        sd.iValue = $4._int;
-                                }
-				value.value = $4._ptr;
-                sd.returnByFun = $4.returnByFun;
-				sd.symdeps.push_back(value);
-				insert(std::string(name),sd);
-				delete name;
-                        }
+						sd.symtype = Token2Symbol($4.type);
+						sd.readonly = true;
+						sd.hasValue = true;
+						if($4.type == vint){
+							sd.iValue = $4._int;
+						}else if($4.type == vbool){
+							sd.bValue = $4._bool;
+						}else if($4.type == vstring){
+							sd.sValue = $4._str;
+						}else if($4.type == vbool){
+							sd.iValue = $4._int;
+						}
+						value.value = $4._ptr;
+						sd.returnByFun = $4.returnByFun;
+						sd.symdeps.push_back(value);
+						insert(std::string(name),sd);
+						delete name;
+                    }
                     | VAL id ':' type '=' declaration_value {
-                                char * name = $2._str;
-				SymbolDesc sd;
-				uDependency value;
+                        char * name = $2._str;
+						SymbolDesc sd;
+						uDependency value;
 
-				sd.symtype = Token2Symbol($4.type);
-				sd.readonly = true;
-                                sd.hasValue = true;
-                                if($4.type == vint){
-                                        sd.iValue = $6._int;
-                                }else if($4.type == vbool){
-                                        sd.bValue = $6._bool;
-                                }else if($4.type == vstring){
-                                        sd.sValue = $6._str;
-                                }else if($4.type == vbool){
-                                        sd.iValue = $6._int;
-                                }
-				value.value = $6._ptr;
-                sd.returnByFun = $6.returnByFun;
-				sd.symdeps.push_back(value);
+						sd.symtype = Token2Symbol($4.type);
+						sd.readonly = true;
+						sd.hasValue = true;
+						if($4.type == vint){
+							sd.iValue = $6._int;
+						}else if($4.type == vbool){
+							sd.bValue = $6._bool;
+						}else if($4.type == vstring){
+							sd.sValue = $6._str;
+						}else if($4.type == vbool){
+							sd.iValue = $6._int;
+						}
+						value.value = $6._ptr;
+						sd.returnByFun = $6.returnByFun;
+						sd.symdeps.push_back(value);
 
-				insert(std::string(name),sd);
-				delete name;
-                        }
+						insert(std::string(name),sd);
+						delete name;
+                    }
                     ;
 
 variable_declaration: VAR id{ 

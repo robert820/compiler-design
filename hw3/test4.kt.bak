@@ -8,7 +8,7 @@ class test4
 	}
   fun main () {
     var a = (add(5, 10))
-	val b = sub(7, 3)
+	var b = 10 % 5
 	println(a)
 	println(b)
   }
