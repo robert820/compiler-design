@@ -1392,7 +1392,17 @@ variable_declaration: VAR id{
 		    }
                     ;
 
-arrays_declaration: VAR id ':' type '[' integer ']'
+arrays_declaration: VAR id ':' type '[' integer ']'{
+						SymbolDesc sd;
+						uDependency value;
+						value.low = 0;
+						value.high = $6._int;
+						
+						sd.returnByFun = $4.returnByFun;
+						sd.symtype = SymbolType::sarray;
+						sd.symdeps.push_back(value);
+						insert($2._str, sd);
+					}
                     ;
 
 /*semi:           SEMICOLON
